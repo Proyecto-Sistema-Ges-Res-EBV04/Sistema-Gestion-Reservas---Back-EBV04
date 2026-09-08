@@ -1,0 +1,46 @@
+package com.reservas.reservas_backend.integracion;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class ManejadorGlobalExcepciones {
+
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ResponseEntity<Map<String, Object>> manejarCredencialesInvalidas(CredencialesInvalidasException ex) {
+        return construirRespuesta(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(CuentaInactivaException.class)
+    public ResponseEntity<Map<String, Object>> manejarCuentaInactiva(CuentaInactivaException ex) {
+        return construirRespuesta(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(CuentaBloqueadaException.class)
+    public ResponseEntity<Map<String, Object>> manejarCuentaBloqueada(CuentaBloqueadaException ex) {
+        return construirRespuesta(HttpStatus.LOCKED, ex.getMessage());
+    }
+
+    // Errores de validación de @Valid en el LoginRequest (ej. @Email, @NotBlank)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> manejarErroresDeValidacion(MethodArgumentNotValidException ex) {
+        String mensaje = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        return construirRespuesta(HttpStatus.BAD_REQUEST, mensaje);
+    }
+
+    private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", mensaje);
+        return new ResponseEntity<>(body, status);
+    }
+}
