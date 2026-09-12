@@ -28,6 +28,32 @@ public class ManejadorGlobalExcepciones {
         return construirRespuesta(HttpStatus.LOCKED, ex.getMessage());
     }
 
+    // HU-09 / HU-11
+    @ExceptionHandler(EmpresaNoAutenticadaException.class)
+    public ResponseEntity<Map<String, Object>> manejarEmpresaNoAutenticada(EmpresaNoAutenticadaException ex) {
+        return construirRespuesta(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(SedeNoEncontradaException.class)
+    public ResponseEntity<Map<String, Object>> manejarSedeNoEncontrada(SedeNoEncontradaException ex) {
+        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(SedeInactivaException.class)
+    public ResponseEntity<Map<String, Object>> manejarSedeInactiva(SedeInactivaException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(ServicioNoEncontradoException.class)
+    public ResponseEntity<Map<String, Object>> manejarServicioNoEncontrado(ServicioNoEncontradoException ex) {
+        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(AsociacionServicioSedeNoEncontradaException.class)
+    public ResponseEntity<Map<String, Object>> manejarAsociacionNoEncontrada(AsociacionServicioSedeNoEncontradaException ex) {
+        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     // Errores de validación de @Valid en el LoginRequest (ej. @Email, @NotBlank)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> manejarErroresDeValidacion(MethodArgumentNotValidException ex) {
