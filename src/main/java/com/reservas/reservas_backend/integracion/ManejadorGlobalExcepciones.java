@@ -54,6 +54,29 @@ public class ManejadorGlobalExcepciones {
         return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    // HU-01 / HU-02
+    @ExceptionHandler(CorreoYaRegistradoException.class)
+    public ResponseEntity<Map<String, Object>> manejarCorreoYaRegistrado(CorreoYaRegistradoException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(IdentificadorYaRegistradoException.class)
+    public ResponseEntity<Map<String, Object>> manejarIdentificadorYaRegistrado(IdentificadorYaRegistradoException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    // HU-02
+    @ExceptionHandler(RegistroIncompletoException.class)
+    public ResponseEntity<Map<String, Object>> manejarRegistroIncompleto(RegistroIncompletoException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // HU-16
+    @ExceptionHandler(CapacidadInvalidaException.class)
+    public ResponseEntity<Map<String, Object>> manejarCapacidadInvalida(CapacidadInvalidaException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     // Errores de validación de @Valid en el LoginRequest (ej. @Email, @NotBlank)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> manejarErroresDeValidacion(MethodArgumentNotValidException ex) {

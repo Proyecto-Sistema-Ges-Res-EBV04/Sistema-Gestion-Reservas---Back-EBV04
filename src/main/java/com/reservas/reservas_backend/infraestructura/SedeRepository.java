@@ -9,4 +9,6 @@ public interface SedeRepository extends JpaRepository<Sede, Integer> {
     List<Sede> findByEmpresa_Id(Integer idEmpresa);
 
     List<Sede> findByEmpresa_IdAndActivaTrue(Integer idEmpresa);
+
+    boolean existsByEmpresa_Id(Integer idEmpresa);
 }

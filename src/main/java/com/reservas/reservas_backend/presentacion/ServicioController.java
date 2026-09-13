@@ -1,5 +1,6 @@
 package com.reservas.reservas_backend.presentacion;
 
+import com.reservas.reservas_backend.aplicacion.CapacidadService;
 import com.reservas.reservas_backend.aplicacion.ServicioService;
 import com.reservas.reservas_backend.dominio.Empleado;
 import com.reservas.reservas_backend.dominio.Recurso;
@@ -20,10 +21,12 @@ import java.util.List;
 public class ServicioController {
 
     private final ServicioService servicioService;
+    private final CapacidadService capacidadService;
 
     @Autowired
-    public ServicioController(ServicioService servicioService) {
+    public ServicioController(ServicioService servicioService, CapacidadService capacidadService) {
         this.servicioService = servicioService;
+        this.capacidadService = capacidadService;
     }
 
     @PostMapping
@@ -52,6 +55,21 @@ public class ServicioController {
                                                               @Valid @RequestBody RegistrarRecursoRequest request) {
         Recurso recurso = servicioService.registrarRecurso(idServicio, idSede, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(RecursoResponse.desde(recurso));
+    }
+
+    // HU-16: Configurar capacidad de atención (crea o reconfigura, RN11).
+    @PostMapping("/{idServicio}/sedes/{idSede}/capacidad")
+    public ResponseEntity<List<CapacidadResponse>> configurarCapacidad(@PathVariable Integer idServicio,
+                                                                        @PathVariable Integer idSede,
+                                                                        @Valid @RequestBody ConfigurarCapacidadRequest request) {
+        List<CapacidadResponse> respuesta = capacidadService.configurarCapacidad(idServicio, idSede, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
+    }
+
+    @GetMapping("/{idServicio}/sedes/{idSede}/capacidad")
+    public ResponseEntity<List<CapacidadResponse>> consultarCapacidad(@PathVariable Integer idServicio,
+                                                                       @PathVariable Integer idSede) {
+        return ResponseEntity.ok(capacidadService.consultarCapacidad(idServicio, idSede));
     }
 
     private ServicioResponse aRespuesta(Servicio servicio) {

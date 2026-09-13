@@ -9,4 +9,6 @@ public interface ServicioSedeRepository extends JpaRepository<ServicioSede, Inte
     boolean existsByServicio_IdAndSede_Id(Integer idServicio, Integer idSede);
 
     List<ServicioSede> findByServicio_Id(Integer idServicio);
+
+    boolean existsByServicio_Empresa_Id(Integer idEmpresa);
 }

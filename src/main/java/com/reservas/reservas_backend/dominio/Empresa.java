@@ -6,12 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
-/**
- * Entidad mínima: HU-02 (Registrar cuenta de empresa) es responsabilidad de otro
- * integrante del equipo y agregará el resto de los datos de registro (NIT, correo
- * de contacto, etc.). Esta tabla existe ya para que Sede y Servicio (HU-09/HU-11)
- * tengan a qué Empresa asociarse.
- */
+// HU-02: Registrar cuenta de Empresa.
 @Entity
 @Table(name = "empresa")
 @Data
@@ -25,6 +20,17 @@ public class Empresa {
 
     @Column(nullable = false, length = 200)
     private String nombre;
+
+    // RN1/RN2 (HU-02): identificación de la Empresa (NIT), obligatoria y única en la plataforma.
+    @Column(nullable = false, unique = true, length = 30)
+    private String identificacion;
+
+    @Column(nullable = false, length = 20)
+    private String telefono;
+
+    // RN3/RN4/RN5 (HU-02): true solo cuando ya tiene sede + servicio asociado a una sede + capacidad configurada.
+    @Column(name = "registrocompleto", nullable = false)
+    private Boolean registroCompleto = false;
 
     @Column(name = "fechacreacion")
     private LocalDateTime fechaCreacion;

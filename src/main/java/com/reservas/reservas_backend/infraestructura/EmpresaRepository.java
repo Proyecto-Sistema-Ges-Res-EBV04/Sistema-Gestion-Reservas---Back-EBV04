@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface EmpresaRepository extends JpaRepository<Empresa, Integer> {
 
     boolean existsByNombre(String nombre);
+
+    boolean existsByIdentificacion(String identificacion);
 }
