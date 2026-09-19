@@ -37,6 +37,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/h2-console/**").permitAll()
+                        // HU-01/HU-02: cualquier visitante puede crear una cuenta de Usuario o de Empresa.
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/usuarios", "/api/empresas").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
