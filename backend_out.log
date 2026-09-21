@@ -82,3 +82,42 @@ This generated password is for development use only. Your security configuration
 Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
 Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.id=?
 Hibernate: select bis1_0.id,bis1_0.bloqueado,bis1_0.contador,bis1_0.fechadesbloqueo,bis1_0.idiniciosesion from bloqueoiniciosesion bis1_0 where bis1_0.idiniciosesion=?
+Hibernate: select is1_0.id from iniciosesion is1_0 where is1_0.correoelectronico=? fetch first ? rows only
+Hibernate: select u1_0.id from usuario u1_0 where u1_0.numerodocumento=? fetch first ? rows only
+Hibernate: insert into usuario (celular,direccion,fechacreacion,fechamodificacion,fechanacimiento,idmunicipio,numerodocumento,primerapellido,primernombre,segundoapellido,segundonombre) values (?,?,?,?,?,?,?,?,?,?,?)
+Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.nombre=?
+Hibernate: insert into iniciosesion (clave,correoelectronico,fechacreacion,fechamodificacion,idusuario,idtipousuario) values (?,?,?,?,?,?)
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select is1_0.id from iniciosesion is1_0 where is1_0.correoelectronico=? fetch first ? rows only
+Hibernate: select u1_0.id from usuario u1_0 where u1_0.numerodocumento=? fetch first ? rows only
+Hibernate: select is1_0.id from iniciosesion is1_0 where is1_0.correoelectronico=? fetch first ? rows only
+Hibernate: select u1_0.id from usuario u1_0 where u1_0.numerodocumento=? fetch first ? rows only
+Hibernate: insert into usuario (celular,direccion,fechacreacion,fechamodificacion,fechanacimiento,idmunicipio,numerodocumento,primerapellido,primernombre,segundoapellido,segundonombre) values (?,?,?,?,?,?,?,?,?,?,?)
+Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.nombre=?
+Hibernate: insert into iniciosesion (clave,correoelectronico,fechacreacion,fechamodificacion,idusuario,idtipousuario) values (?,?,?,?,?,?)
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.id=?
+Hibernate: select bis1_0.id,bis1_0.bloqueado,bis1_0.contador,bis1_0.fechadesbloqueo,bis1_0.idiniciosesion from bloqueoiniciosesion bis1_0 where bis1_0.idiniciosesion=?
+Hibernate: insert into bloqueoiniciosesion (bloqueado,contador,fechadesbloqueo,idiniciosesion) values (?,?,?,?)
+Hibernate: select is1_0.id from iniciosesion is1_0 where is1_0.correoelectronico=? fetch first ? rows only
+Hibernate: select e1_0.id from empresa e1_0 where e1_0.identificacion=? fetch first ? rows only
+Hibernate: insert into empresa (fechacreacion,identificacion,nombre,registrocompleto,telefono) values (?,?,?,?,?)
+Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.nombre=?
+Hibernate: insert into iniciosesion (clave,correoelectronico,fechacreacion,fechamodificacion,idusuario,idtipousuario) values (?,?,?,?,?,?)
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.id=?
+Hibernate: select e1_0.id,e1_0.fechacreacion,e1_0.identificacion,e1_0.nombre,e1_0.registrocompleto,e1_0.telefono from empresa e1_0 where e1_0.id=?
+Hibernate: insert into sede (activa,direccion,idempresa,fechacreacion,municipio,nombre,telefono) values (?,?,?,?,?,?,?)
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.id=?
+Hibernate: select bis1_0.id,bis1_0.bloqueado,bis1_0.contador,bis1_0.fechadesbloqueo,bis1_0.idiniciosesion from bloqueoiniciosesion bis1_0 where bis1_0.idiniciosesion=?
+Hibernate: insert into bloqueoiniciosesion (bloqueado,contador,fechadesbloqueo,idiniciosesion) values (?,?,?,?)
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.id=?
+Hibernate: select bis1_0.id,bis1_0.bloqueado,bis1_0.contador,bis1_0.fechadesbloqueo,bis1_0.idiniciosesion from bloqueoiniciosesion bis1_0 where bis1_0.idiniciosesion=?
+Hibernate: select is1_0.id,is1_0.clave,is1_0.correoelectronico,is1_0.fechacreacion,is1_0.fechamodificacion,is1_0.idusuario,is1_0.idtipousuario from iniciosesion is1_0 where is1_0.correoelectronico=?
+Hibernate: select tu1_0.id,tu1_0.nombre from tipousuario tu1_0 where tu1_0.id=?
+Hibernate: select bis1_0.id,bis1_0.bloqueado,bis1_0.contador,bis1_0.fechadesbloqueo,bis1_0.idiniciosesion from bloqueoiniciosesion bis1_0 where bis1_0.idiniciosesion=?
