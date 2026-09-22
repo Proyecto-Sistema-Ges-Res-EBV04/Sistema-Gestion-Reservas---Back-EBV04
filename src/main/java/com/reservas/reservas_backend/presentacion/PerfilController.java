@@ -2,7 +2,6 @@ package com.reservas.reservas_backend.presentacion;
 
 import com.reservas.reservas_backend.aplicacion.JwtService;
 import com.reservas.reservas_backend.aplicacion.PerfilService;
-import com.reservas.reservas_backend.integracion.PerfilResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,8 +22,10 @@ public class PerfilController {
         this.jwtService = jwtService;
     }
 
+    // El tipo de dato de la respuesta varía según el tipo de cuenta
+    // (PerfilUsuarioResponse o PerfilNegocioResponse) — RN2, RN3, RN4.
     @GetMapping
-    public ResponseEntity<PerfilResponse> consultarPerfil(
+    public ResponseEntity<Object> consultarPerfil(
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
