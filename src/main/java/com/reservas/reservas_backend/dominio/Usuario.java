@@ -18,6 +18,10 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // RN1/RN2 (HU-01): documento de identidad, obligatorio y único en toda la plataforma.
+    @Column(name = "numerodocumento", nullable = false, unique = true, length = 30)
+    private String numeroDocumento;
+
     @Column(name = "primernombre", length = 100)
     private String primerNombre;
 
