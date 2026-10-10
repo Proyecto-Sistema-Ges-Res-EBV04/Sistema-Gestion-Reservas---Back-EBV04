@@ -6,8 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 // RN4/RN5 (HU-11): un servicio se asocia a una o varias sedes de la Empresa.
+// La restricción única evita que el mismo servicio quede asociado dos veces a la misma sede.
+// Tiene nombre fijo para que coincida con scripts/bd/01_restricciones_unicas.sql.
 @Entity
-@Table(name = "serviciosede")
+@Table(name = "serviciosede",
+        uniqueConstraints = @UniqueConstraint(name = "uk_serviciosede_servicio_sede",
+                columnNames = {"idservicio", "idsede"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

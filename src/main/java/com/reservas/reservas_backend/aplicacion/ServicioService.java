@@ -41,8 +41,18 @@ public class ServicioService {
     public Servicio registrarServicio(RegistrarServicioRequest request) {
         Empresa empresa = empresaContexto.obtenerEmpresaAutenticada();
 
-        List<Sede> sedes = new ArrayList<>();
+        // Si la misma sede llega repetida en la lista, se toma una sola vez:
+        // elegirla dos veces significa lo mismo, y la tabla serviciosede no
+        // permite asociar el mismo servicio dos veces a la misma sede.
+        List<Integer> idsSedeSinRepetir = new ArrayList<>();
         for (Integer idSede : request.getIdsSede()) {
+            if (!idsSedeSinRepetir.contains(idSede)) {
+                idsSedeSinRepetir.add(idSede);
+            }
+        }
+
+        List<Sede> sedes = new ArrayList<>();
+        for (Integer idSede : idsSedeSinRepetir) {
             sedes.add(obtenerSedeActivaDeLaEmpresa(idSede, empresa));
         }
 
