@@ -6,8 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
+// La restricción única evita dos cuentas con el mismo correo (el login busca por correo).
+// Tiene nombre fijo para que coincida con scripts/bd/01_restricciones_unicas.sql.
 @Entity
-@Table(name = "iniciosesion")
+@Table(name = "iniciosesion",
+        uniqueConstraints = @UniqueConstraint(name = "uk_iniciosesion_correo",
+                columnNames = {"correoelectronico"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
