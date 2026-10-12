@@ -7,8 +7,10 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-// HU-16 (RN1-RN6): capacidad máxima de citas/recursos reservables simultáneamente
-// para una combinación de servicio, sede y horario (día + rango horario).
+// HU-16 (RN1): franja de atención de un servicio en una sede (día + rango horario).
+// RN7/RN8: la capacidad no se ingresa manualmente; se calcula sumando los espacios de los
+// empleados que tienen la franja asignada (ver CapacidadService). Una franja recién definida
+// queda con capacidad 0 hasta que se configure.
 @Entity
 @Table(name = "capacidadatencion")
 @Data

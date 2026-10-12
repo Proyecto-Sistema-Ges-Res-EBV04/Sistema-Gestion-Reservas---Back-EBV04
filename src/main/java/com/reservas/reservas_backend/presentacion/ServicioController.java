@@ -57,17 +57,40 @@ public class ServicioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(RecursoResponse.desde(recurso));
     }
 
-    // HU-16: Configurar capacidad de atención (crea o reconfigura, RN11).
+    // HU-16 (RN1): define las franjas de atención del servicio en la sede.
+    @PostMapping("/{idServicio}/sedes/{idSede}/franjas")
+    public ResponseEntity<List<FranjaResponse>> definirFranjas(@PathVariable Integer idServicio,
+                                                                @PathVariable Integer idSede,
+                                                                @Valid @RequestBody DefinirFranjasRequest request) {
+        List<FranjaResponse> respuesta = capacidadService.definirFranjas(idServicio, idSede, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
+    }
+
+    @GetMapping("/{idServicio}/sedes/{idSede}/franjas")
+    public ResponseEntity<List<FranjaResponse>> consultarFranjas(@PathVariable Integer idServicio,
+                                                                  @PathVariable Integer idSede) {
+        return ResponseEntity.ok(capacidadService.consultarFranjas(idServicio, idSede));
+    }
+
+    // HU-16 (RN13): calcula el resumen de capacidad sin guardar, para revisarlo antes de confirmar.
+    @PostMapping("/{idServicio}/sedes/{idSede}/capacidad/resumen")
+    public ResponseEntity<CapacidadResumenResponse> previsualizarCapacidad(@PathVariable Integer idServicio,
+                                                                           @PathVariable Integer idSede,
+                                                                           @Valid @RequestBody ConfigurarCapacidadRequest request) {
+        return ResponseEntity.ok(capacidadService.previsualizarCapacidad(idServicio, idSede, request));
+    }
+
+    // HU-16: confirma la configuración de capacidad (reemplaza la anterior del servicio en la sede).
     @PostMapping("/{idServicio}/sedes/{idSede}/capacidad")
-    public ResponseEntity<List<CapacidadResponse>> configurarCapacidad(@PathVariable Integer idServicio,
+    public ResponseEntity<CapacidadResumenResponse> configurarCapacidad(@PathVariable Integer idServicio,
                                                                         @PathVariable Integer idSede,
                                                                         @Valid @RequestBody ConfigurarCapacidadRequest request) {
-        List<CapacidadResponse> respuesta = capacidadService.configurarCapacidad(idServicio, idSede, request);
+        CapacidadResumenResponse respuesta = capacidadService.configurarCapacidad(idServicio, idSede, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(respuesta);
     }
 
     @GetMapping("/{idServicio}/sedes/{idSede}/capacidad")
-    public ResponseEntity<List<CapacidadResponse>> consultarCapacidad(@PathVariable Integer idServicio,
+    public ResponseEntity<CapacidadResumenResponse> consultarCapacidad(@PathVariable Integer idServicio,
                                                                        @PathVariable Integer idSede) {
         return ResponseEntity.ok(capacidadService.consultarCapacidad(idServicio, idSede));
     }

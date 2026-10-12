@@ -5,14 +5,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-// HU-16 (RN8): máximo de recursos/unidades simultáneas que un empleado puede
-// atender dentro de una configuración de capacidad (servicio+sede+horario).
+// HU-16 (RN3): horario asignado a un empleado, es decir, una franja de atención en la que trabaja.
+// La restricción única evita asignar dos veces la misma franja al mismo empleado.
 @Entity
-@Table(name = "capacidadempleado")
+@Table(name = "horarioempleado",
+        uniqueConstraints = @UniqueConstraint(name = "uk_horarioempleado_franja_empleado",
+                columnNames = {"idcapacidadatencion", "idempleado"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CapacidadEmpleado {
+public class HorarioEmpleado {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,12 +22,9 @@ public class CapacidadEmpleado {
 
     @ManyToOne
     @JoinColumn(name = "idcapacidadatencion", nullable = false)
-    private CapacidadAtencion capacidadAtencion;
+    private CapacidadAtencion franja;
 
     @ManyToOne
     @JoinColumn(name = "idempleado", nullable = false)
     private Empleado empleado;
-
-    @Column(name = "limitesimultaneo", nullable = false)
-    private Integer limiteSimultaneo;
 }
