@@ -101,6 +101,7 @@ public class ServicioService {
         recurso.setServicio(servicio);
         recurso.setSede(sede);
         recurso.setIdentificador(request.getIdentificador());
+        recurso.setExclusivo(!Boolean.FALSE.equals(request.getExclusivo()));
         recurso.setFechaCreacion(LocalDateTime.now());
 
         return recursoRepository.save(recurso);
