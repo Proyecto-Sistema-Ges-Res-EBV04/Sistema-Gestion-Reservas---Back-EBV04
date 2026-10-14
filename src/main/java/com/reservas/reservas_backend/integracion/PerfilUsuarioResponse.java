@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class PerfilUsuarioResponse {
 
     private Integer id;
+    private String numeroDocumento;
     private String primerNombre;
     private String segundoNombre;
     private String primerApellido;

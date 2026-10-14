@@ -3,14 +3,17 @@ package com.reservas.reservas_backend.aplicacion;
 import com.reservas.reservas_backend.dominio.Empresa;
 import com.reservas.reservas_backend.dominio.InicioSesion;
 import com.reservas.reservas_backend.dominio.Sede;
+import com.reservas.reservas_backend.dominio.Servicio;
 import com.reservas.reservas_backend.dominio.Usuario;
 import com.reservas.reservas_backend.infraestructura.EmpresaRepository;
 import com.reservas.reservas_backend.infraestructura.InicioSesionRepository;
 import com.reservas.reservas_backend.infraestructura.SedeRepository;
+import com.reservas.reservas_backend.infraestructura.ServicioRepository;
 import com.reservas.reservas_backend.infraestructura.UsuarioRepository;
 import com.reservas.reservas_backend.integracion.PerfilNegocioResponse;
 import com.reservas.reservas_backend.integracion.PerfilUsuarioResponse;
 import com.reservas.reservas_backend.integracion.SedeResponse;
+import com.reservas.reservas_backend.integracion.ServicioResumenResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,7 +26,7 @@ import java.util.List;
  *
  *   - Cuenta de tipo "EMPRESA": inicioSesion.idUsuario apunta al id de la
  *     Empresa (igual que en EmpresaContextoService). Se muestra la info de
- *     la Empresa y sus sedes (RN3).
+ *     la Empresa, sus sedes y sus servicios (RN3).
  *   - Cualquier otro tipo (Usuario, Administrador): inicioSesion.idUsuario
  *     apunta a la tabla "usuario" y se muestra la info básica (RN2).
  */
@@ -36,15 +39,18 @@ public class PerfilService {
     private final UsuarioRepository usuarioRepository;
     private final EmpresaRepository empresaRepository;
     private final SedeRepository sedeRepository;
+    private final ServicioRepository servicioRepository;
 
     public PerfilService(InicioSesionRepository inicioSesionRepository,
                           UsuarioRepository usuarioRepository,
                           EmpresaRepository empresaRepository,
-                          SedeRepository sedeRepository) {
+                          SedeRepository sedeRepository,
+                          ServicioRepository servicioRepository) {
         this.inicioSesionRepository = inicioSesionRepository;
         this.usuarioRepository = usuarioRepository;
         this.empresaRepository = empresaRepository;
         this.sedeRepository = sedeRepository;
+        this.servicioRepository = servicioRepository;
     }
 
     public Object consultarPerfil(String correo) {
@@ -74,6 +80,7 @@ public class PerfilService {
 
         return new PerfilUsuarioResponse(
                 usuario.getId(),
+                usuario.getNumeroDocumento(),
                 usuario.getPrimerNombre(),
                 usuario.getSegundoNombre(),
                 usuario.getPrimerApellido(),
@@ -99,13 +106,21 @@ public class PerfilService {
             sedesResponse.add(SedeResponse.desde(sede));
         }
 
+        List<Servicio> servicios = servicioRepository.findByEmpresa_Id(empresa.getId());
+
+        List<ServicioResumenResponse> serviciosResponse = new ArrayList<>();
+        for (Servicio servicio : servicios) {
+            serviciosResponse.add(ServicioResumenResponse.desde(servicio));
+        }
+
         return new PerfilNegocioResponse(
                 empresa.getId(),
                 empresa.getNombre(),
                 empresa.getIdentificacion(),
                 inicioSesion.getCorreoElectronico(),
                 empresa.getTelefono(),
-                sedesResponse
+                sedesResponse,
+                serviciosResponse
         );
     }
 }
