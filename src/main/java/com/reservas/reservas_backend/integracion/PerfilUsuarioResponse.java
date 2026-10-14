@@ -3,7 +3,7 @@ package com.reservas.reservas_backend.integracion;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -18,5 +18,5 @@ public class PerfilUsuarioResponse {
     private String direccion;
     private Integer idMunicipio;
     private String celular;
-    private LocalDate fechaNacimiento;
+    private LocalDateTime fechaNacimiento;
 }

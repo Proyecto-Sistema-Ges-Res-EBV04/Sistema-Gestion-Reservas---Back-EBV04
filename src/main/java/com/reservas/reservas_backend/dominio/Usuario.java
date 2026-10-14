@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -44,7 +43,7 @@ public class Usuario {
     private String celular;
 
     @Column(name = "fechanacimiento")
-    private LocalDate fechaNacimiento;
+    private LocalDateTime fechaNacimiento;
 
     @Column(name = "fechacreacion")
     private LocalDateTime fechaCreacion;

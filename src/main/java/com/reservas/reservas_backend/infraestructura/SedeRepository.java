@@ -6,5 +6,9 @@ import java.util.List;
 
 public interface SedeRepository extends JpaRepository<Sede, Integer> {
 
-    List<Sede> findByIdNegocio(Integer idNegocio);
+    List<Sede> findByEmpresa_Id(Integer idEmpresa);
+
+    List<Sede> findByEmpresa_IdAndActivaTrue(Integer idEmpresa);
+
+    boolean existsByEmpresa_Id(Integer idEmpresa);
 }
