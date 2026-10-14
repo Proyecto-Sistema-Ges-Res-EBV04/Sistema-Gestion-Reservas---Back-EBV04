@@ -1,11 +1,11 @@
 package com.reservas.reservas_backend.aplicacion;
 
+import com.reservas.reservas_backend.dominio.Empresa;
 import com.reservas.reservas_backend.dominio.InicioSesion;
-import com.reservas.reservas_backend.dominio.Negocio;
 import com.reservas.reservas_backend.dominio.Sede;
 import com.reservas.reservas_backend.dominio.Usuario;
+import com.reservas.reservas_backend.infraestructura.EmpresaRepository;
 import com.reservas.reservas_backend.infraestructura.InicioSesionRepository;
-import com.reservas.reservas_backend.infraestructura.NegocioRepository;
 import com.reservas.reservas_backend.infraestructura.SedeRepository;
 import com.reservas.reservas_backend.infraestructura.UsuarioRepository;
 import com.reservas.reservas_backend.integracion.PerfilNegocioResponse;
@@ -15,42 +15,35 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * HU-06: Consultar perfil.
  *
- * Según el esquema real de la base de datos:
- *   - Toda cuenta (iniciosesion) siempre tiene un "usuario" asociado
- *     (idusuario), sin importar el tipo de cuenta.
- *   - Si el tipo de cuenta es "Negocio"/"Empresa", ADEMÁS existe un
- *     registro en "negocio" que se relaciona por idiniciosesion (no por
- *     idusuario). Ese negocio tiene sus propias sedes.
- *   - No existe una tabla separada de "Administrador": una cuenta de
- *     administrador usa la misma información básica de "usuario"
- *     (RN4: solo info básica de cuenta, sin funciones adicionales).
- *
- * IMPORTANTE: el valor real de tipousuario.nombre para "negocio" no estaba
- * disponible en el volcado de solo-esquema (no incluye datos). Se compara
- * aceptando "NEGOCIO" o "EMPRESA" (sin distinguir mayúsculas) para cubrir
- * ambos casos comunes. Verifica el valor real en tu tabla tipousuario y
- * ajusta ES_TIPO_NEGOCIO si hace falta.
+ *   - Cuenta de tipo "EMPRESA": inicioSesion.idUsuario apunta al id de la
+ *     Empresa (igual que en EmpresaContextoService). Se muestra la info de
+ *     la Empresa y sus sedes (RN3).
+ *   - Cualquier otro tipo (Usuario, Administrador): inicioSesion.idUsuario
+ *     apunta a la tabla "usuario" y se muestra la info básica (RN2).
  */
 @Service
 public class PerfilService {
 
+    private static final String TIPO_EMPRESA = "EMPRESA";
+
     private final InicioSesionRepository inicioSesionRepository;
     private final UsuarioRepository usuarioRepository;
-    private final NegocioRepository negocioRepository;
+    private final EmpresaRepository empresaRepository;
     private final SedeRepository sedeRepository;
 
     public PerfilService(InicioSesionRepository inicioSesionRepository,
                           UsuarioRepository usuarioRepository,
-                          NegocioRepository negocioRepository,
+                          EmpresaRepository empresaRepository,
                           SedeRepository sedeRepository) {
         this.inicioSesionRepository = inicioSesionRepository;
         this.usuarioRepository = usuarioRepository;
-        this.negocioRepository = negocioRepository;
+        this.empresaRepository = empresaRepository;
         this.sedeRepository = sedeRepository;
     }
 
@@ -64,17 +57,13 @@ public class PerfilService {
                 ? inicioSesion.getTipoUsuario().getNombre()
                 : "";
 
-        if (esTipoNegocio(tipo)) {
-            return consultarPerfilNegocio(inicioSesion);
+        if (TIPO_EMPRESA.equalsIgnoreCase(tipo)) {
+            return consultarPerfilEmpresa(inicioSesion);
         }
 
         // Usuario y Administrador comparten la misma tabla "usuario" (RN4:
         // el admin solo ve información básica de cuenta, igual que un Usuario).
         return consultarPerfilUsuario(inicioSesion);
-    }
-
-    private boolean esTipoNegocio(String tipo) {
-        return "NEGOCIO".equalsIgnoreCase(tipo) || "EMPRESA".equalsIgnoreCase(tipo);
     }
 
     private PerfilUsuarioResponse consultarPerfilUsuario(InicioSesion inicioSesion) {
@@ -97,29 +86,25 @@ public class PerfilService {
         );
     }
 
-    private PerfilNegocioResponse consultarPerfilNegocio(InicioSesion inicioSesion) {
-        Negocio negocio = negocioRepository
-                .findByIdIniciaSesion(inicioSesion.getId())
+    private PerfilNegocioResponse consultarPerfilEmpresa(InicioSesion inicioSesion) {
+        Empresa empresa = empresaRepository
+                .findById(inicioSesion.getIdUsuario())
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "No se encontró el perfil del negocio"));
+                        HttpStatus.NOT_FOUND, "No se encontró el perfil de la empresa"));
 
-        List<Sede> sedes = sedeRepository.findByIdNegocio(negocio.getId());
+        List<Sede> sedes = sedeRepository.findByEmpresa_Id(empresa.getId());
 
-        List<SedeResponse> sedesResponse = sedes.stream()
-                .map(sede -> new SedeResponse(
-                        sede.getId(),
-                        sede.getNombre(),
-                        sede.getDireccion(),
-                        sede.getIdMunicipio()))
-                .toList();
+        List<SedeResponse> sedesResponse = new ArrayList<>();
+        for (Sede sede : sedes) {
+            sedesResponse.add(SedeResponse.desde(sede));
+        }
 
         return new PerfilNegocioResponse(
-                negocio.getId(),
-                negocio.getNombre(),
-                negocio.getRazonSocial(),
+                empresa.getId(),
+                empresa.getNombre(),
+                empresa.getIdentificacion(),
                 inicioSesion.getCorreoElectronico(),
-                negocio.getTelefono(),
-                negocio.getCelular(),
+                empresa.getTelefono(),
                 sedesResponse
         );
     }
