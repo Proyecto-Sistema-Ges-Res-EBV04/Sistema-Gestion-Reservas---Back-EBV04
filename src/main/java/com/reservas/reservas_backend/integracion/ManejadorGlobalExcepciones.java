@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -75,6 +76,24 @@ public class ManejadorGlobalExcepciones {
     @ExceptionHandler(CapacidadInvalidaException.class)
     public ResponseEntity<Map<String, Object>> manejarCapacidadInvalida(CapacidadInvalidaException ex) {
         return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // HU-23
+    @ExceptionHandler(UsuarioNoAutenticadoException.class)
+    public ResponseEntity<Map<String, Object>> manejarUsuarioNoAutenticado(UsuarioNoAutenticadoException ex) {
+        return construirRespuesta(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConsultaCitasInvalidaException.class)
+    public ResponseEntity<Map<String, Object>> manejarConsultaCitasInvalida(ConsultaCitasInvalidaException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // Parámetros de consulta con formato inválido (ej. estado=OTRO o una fecha mal escrita).
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> manejarParametroInvalido(MethodArgumentTypeMismatchException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST,
+                "El valor '" + ex.getValue() + "' no es válido para el filtro '" + ex.getName() + "'");
     }
 
     // Errores de validación de @Valid en el LoginRequest (ej. @Email, @NotBlank)

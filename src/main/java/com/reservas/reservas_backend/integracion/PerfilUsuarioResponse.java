@@ -7,13 +7,15 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class PerfilResponse {
+public class PerfilUsuarioResponse {
 
     private Integer id;
+    private String numeroDocumento;
     private String primerNombre;
     private String segundoNombre;
     private String primerApellido;
     private String segundoApellido;
+    private String correo;
     private String direccion;
     private Integer idMunicipio;
     private String celular;

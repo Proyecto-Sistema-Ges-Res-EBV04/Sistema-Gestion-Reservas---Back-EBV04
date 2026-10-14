@@ -29,6 +29,11 @@ public class Recurso {
     @Column(nullable = false, length = 100)
     private String identificador;
 
+    // HU-16 (RN10): un espacio exclusivo no puede usarlo más de un empleado dentro de la misma franja.
+    // El default en BD permite agregar la columna a tablas que ya tienen registros.
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private Boolean exclusivo = true;
+
     @Column(name = "fechacreacion")
     private LocalDateTime fechaCreacion;
 }
