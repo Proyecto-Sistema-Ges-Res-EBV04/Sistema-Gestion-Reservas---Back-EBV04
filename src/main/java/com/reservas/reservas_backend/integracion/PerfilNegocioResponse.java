@@ -7,8 +7,8 @@ import java.util.List;
 
 /**
  * HU-06 RN3: perfil de Empresa. Muestra nombre, identificación (NIT),
- * teléfono y correo, más las sedes de la Empresa. Los datos salen de la
- * tabla "empresa" (HU-02).
+ * teléfono y correo, más las sedes y servicios de la Empresa. Los datos
+ * salen de la tabla "empresa" (HU-02).
  */
 @Data
 @AllArgsConstructor
@@ -20,4 +20,5 @@ public class PerfilNegocioResponse {
     private String correo;
     private String telefono;
     private List<SedeResponse> sedes;
+    private List<ServicioResumenResponse> servicios;
 }
