@@ -51,4 +51,14 @@ public class Cita {
 
     @Column(name = "fechamodificacion")
     private LocalDateTime fechaModificacion;
+
+    // HU-22: empleado y espacio asignados al agendar (RN5/RN6). Son null en citas
+    // creadas sin personal ni espacios, como los datos de prueba de HU-23.
+    @ManyToOne
+    @JoinColumn(name = "idempleado")
+    private Empleado empleado;
+
+    @ManyToOne
+    @JoinColumn(name = "idrecurso")
+    private Recurso recurso;
 }

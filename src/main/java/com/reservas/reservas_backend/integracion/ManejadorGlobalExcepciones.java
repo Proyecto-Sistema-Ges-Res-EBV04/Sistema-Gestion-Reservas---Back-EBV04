@@ -102,6 +102,16 @@ public class ManejadorGlobalExcepciones {
         String mensaje = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
         return construirRespuesta(HttpStatus.BAD_REQUEST, mensaje);
     }
+        // HU-22
+    @ExceptionHandler(DatosCitaInvalidosException.class)
+    public ResponseEntity<Map<String, Object>> manejarDatosCitaInvalidos(DatosCitaInvalidosException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(SinDisponibilidadException.class)
+    public ResponseEntity<Map<String, Object>> manejarSinDisponibilidad(SinDisponibilidadException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
 
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje) {
         Map<String, Object> body = new HashMap<>();
@@ -111,4 +121,5 @@ public class ManejadorGlobalExcepciones {
         body.put("message", mensaje);
         return new ResponseEntity<>(body, status);
     }
+ 
 }
