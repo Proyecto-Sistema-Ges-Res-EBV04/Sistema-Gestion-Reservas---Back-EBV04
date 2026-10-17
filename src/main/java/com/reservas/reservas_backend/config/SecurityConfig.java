@@ -1,6 +1,7 @@
 package com.reservas.reservas_backend.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -26,9 +28,13 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
+    // Dominios del front separados por coma (cors.origenes en application.properties).
+    private final String origenesPermitidos;
+
     @Autowired
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, @Value("${cors.origenes}") String origenesPermitidos) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.origenesPermitidos = origenesPermitidos;
     }
 
     @Bean
@@ -36,11 +42,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Permite que el frontend (Vite, en localhost:5173) le hable al backend desde el navegador.
+    // Permite que el frontend (Vite en localhost:5173, y en la nube el dominio de Vercel)
+    // le hable al backend desde el navegador.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(Arrays.asList(origenesPermitidos.split(",")));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
