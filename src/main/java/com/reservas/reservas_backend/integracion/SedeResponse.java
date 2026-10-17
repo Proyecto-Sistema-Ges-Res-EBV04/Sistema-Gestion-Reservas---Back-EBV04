@@ -12,6 +12,9 @@ public class SedeResponse {
     private String nombre;
     private String direccion;
     private String municipio;
+    private String pais;
+    private String descripcion;
+    private String referencia;
     private String telefono;
     private Boolean activa;
 
@@ -21,6 +24,9 @@ public class SedeResponse {
                 sede.getNombre(),
                 sede.getDireccion(),
                 sede.getMunicipio(),
+                sede.getPais(),
+                sede.getDescripcion(),
+                sede.getReferencia(),
                 sede.getTelefono(),
                 sede.getActiva()
         );

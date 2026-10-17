@@ -103,7 +103,7 @@ public class ServicioController {
 
         List<EmpleadoResponse> empleados = new ArrayList<>();
         for (Empleado empleado : servicioService.obtenerEmpleados(servicio)) {
-            empleados.add(EmpleadoResponse.desde(empleado));
+            empleados.add(EmpleadoResponse.desde(empleado, servicioService.obtenerEspaciosDeEmpleado(empleado)));
         }
 
         List<RecursoResponse> recursos = new ArrayList<>();

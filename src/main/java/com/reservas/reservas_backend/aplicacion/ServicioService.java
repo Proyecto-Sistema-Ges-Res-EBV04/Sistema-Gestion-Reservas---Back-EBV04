@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ServicioService {
@@ -19,43 +21,49 @@ public class ServicioService {
     private final ServicioSedeRepository servicioSedeRepository;
     private final EmpleadoRepository empleadoRepository;
     private final RecursoRepository recursoRepository;
+    private final EspacioEmpleadoRepository espacioEmpleadoRepository;
     private final EmpresaContextoService empresaContexto;
 
     @Autowired
     public ServicioService(ServicioRepository servicioRepository, SedeRepository sedeRepository,
                             ServicioSedeRepository servicioSedeRepository, EmpleadoRepository empleadoRepository,
-                            RecursoRepository recursoRepository, EmpresaContextoService empresaContexto) {
+                            RecursoRepository recursoRepository, EspacioEmpleadoRepository espacioEmpleadoRepository,
+                            EmpresaContextoService empresaContexto) {
         this.servicioRepository = servicioRepository;
         this.sedeRepository = sedeRepository;
         this.servicioSedeRepository = servicioSedeRepository;
         this.empleadoRepository = empleadoRepository;
         this.recursoRepository = recursoRepository;
+        this.espacioEmpleadoRepository = espacioEmpleadoRepository;
         this.empresaContexto = empresaContexto;
     }
 
-    // RN1/RN2/RN3/RN4/RN5/RN6
-    // @Transactional: el servicio y sus vínculos con las sedes (ServicioSede) se
-    // guardan en varios INSERT separados; si uno falla a mitad de camino, Spring
-    // deshace TODOS los cambios de este método (no queda un servicio a medias).
+    // RN1 a RN9: registra el servicio completo (datos, sedes, espacios y personal).
+    // Primero se valida TODO y solo después se guarda.
+    // @Transactional: se hacen muchos INSERT (servicio, serviciosede, recurso, empleado,
+    // espacioempleado); si uno falla a mitad de camino, Spring deshace TODOS los cambios
+    // de este método (no queda un servicio a medias).
     @Transactional
     public Servicio registrarServicio(RegistrarServicioRequest request) {
         Empresa empresa = empresaContexto.obtenerEmpresaAutenticada();
 
-        // Si la misma sede llega repetida en la lista, se toma una sola vez:
-        // elegirla dos veces significa lo mismo, y la tabla serviciosede no
-        // permite asociar el mismo servicio dos veces a la misma sede.
-        List<Integer> idsSedeSinRepetir = new ArrayList<>();
-        for (Integer idSede : request.getIdsSede()) {
-            if (!idsSedeSinRepetir.contains(idSede)) {
-                idsSedeSinRepetir.add(idSede);
-            }
-        }
-
+        // 1. Validaciones (no se guarda nada todavía).
+        List<Integer> idsSedeVistos = new ArrayList<>();
         List<Sede> sedes = new ArrayList<>();
-        for (Integer idSede : idsSedeSinRepetir) {
-            sedes.add(obtenerSedeActivaDeLaEmpresa(idSede, empresa));
+        for (RegistrarServicioRequest.SedeDelServicio sedeSolicitud : request.getSedes()) {
+            // La tabla serviciosede no permite asociar el mismo servicio dos veces a la misma sede.
+            if (idsSedeVistos.contains(sedeSolicitud.getIdSede())) {
+                throw new ServicioInvalidoException(
+                        "La sede " + sedeSolicitud.getIdSede() + " está repetida; selecciónala una sola vez");
+            }
+            idsSedeVistos.add(sedeSolicitud.getIdSede());
+
+            Sede sede = obtenerSedeActivaDeLaEmpresa(sedeSolicitud.getIdSede(), empresa);
+            validarPersonalYEspacios(sede, sedeSolicitud);
+            sedes.add(sede);
         }
 
+        // 2. Servicio.
         Servicio servicio = new Servicio();
         servicio.setEmpresa(empresa);
         servicio.setNombre(request.getNombre());
@@ -65,14 +73,123 @@ public class ServicioService {
         servicio.setFechaCreacion(LocalDateTime.now());
         servicio = servicioRepository.save(servicio);
 
-        for (Sede sede : sedes) {
+        // 3. Por cada sede: vínculo, espacios, empleados y los espacios de cada empleado.
+        for (int i = 0; i < sedes.size(); i++) {
+            Sede sede = sedes.get(i);
+            RegistrarServicioRequest.SedeDelServicio sedeSolicitud = request.getSedes().get(i);
+
             ServicioSede vinculo = new ServicioSede();
             vinculo.setServicio(servicio);
             vinculo.setSede(sede);
             servicioSedeRepository.save(vinculo);
+
+            // Se guarda cada espacio y se recuerda por su identificador para asignarlo luego.
+            Map<String, Recurso> espaciosPorClave = new HashMap<>();
+            for (String identificador : sedeSolicitud.getEspacios()) {
+                Recurso recurso = new Recurso();
+                recurso.setServicio(servicio);
+                recurso.setSede(sede);
+                recurso.setIdentificador(identificador.trim());
+                recurso.setExclusivo(true);
+                recurso.setFechaCreacion(LocalDateTime.now());
+                recurso = recursoRepository.save(recurso);
+                espaciosPorClave.put(clave(identificador), recurso);
+            }
+
+            for (RegistrarServicioRequest.EmpleadoDelServicio empleadoSolicitud : sedeSolicitud.getEmpleados()) {
+                Empleado empleado = new Empleado();
+                empleado.setServicio(servicio);
+                empleado.setSede(sede);
+                empleado.setNombre(empleadoSolicitud.getNombre().trim());
+                empleado.setCargo(empleadoSolicitud.getCargo().trim());
+                empleado.setFechaCreacion(LocalDateTime.now());
+                empleado = empleadoRepository.save(empleado);
+
+                // RN8: un empleado puede tener varios espacios. Si el mismo espacio llega
+                // repetido para el mismo empleado se guarda una sola vez (restricción única).
+                List<String> clavesAsignadas = new ArrayList<>();
+                for (String identificador : empleadoSolicitud.getEspacios()) {
+                    String claveEspacio = clave(identificador);
+                    if (clavesAsignadas.contains(claveEspacio)) {
+                        continue;
+                    }
+                    clavesAsignadas.add(claveEspacio);
+                    espacioEmpleadoRepository.save(
+                            new EspacioEmpleado(null, empleado, espaciosPorClave.get(claveEspacio)));
+                }
+            }
         }
 
         return servicio;
+    }
+
+    // RN5/RN7/RN9: revisa la configuración de una sede antes de guardar nada.
+    private void validarPersonalYEspacios(Sede sede, RegistrarServicioRequest.SedeDelServicio sedeSolicitud) {
+        // Listas vacías en vez de null, para no tener que preguntar por null más adelante.
+        if (sedeSolicitud.getEspacios() == null) {
+            sedeSolicitud.setEspacios(new ArrayList<>());
+        }
+        if (sedeSolicitud.getEmpleados() == null) {
+            sedeSolicitud.setEmpleados(new ArrayList<>());
+        }
+
+        // RN9: cada espacio con un identificador que lo distinga dentro de la sede.
+        List<String> clavesEspacios = new ArrayList<>();
+        for (String identificador : sedeSolicitud.getEspacios()) {
+            if (identificador == null || identificador.isBlank()) {
+                throw new ServicioInvalidoException(
+                        "En la sede '" + sede.getNombre() + "' hay un espacio sin nombre o identificador");
+            }
+            if (clavesEspacios.contains(clave(identificador))) {
+                throw new ServicioInvalidoException(
+                        "En la sede '" + sede.getNombre() + "' el espacio '" + identificador.trim()
+                                + "' está repetido; cada espacio debe tener un identificador distinto");
+            }
+            clavesEspacios.add(clave(identificador));
+        }
+
+        // RN5: al menos un empleado por sede.
+        if (sedeSolicitud.getEmpleados().isEmpty()) {
+            throw new ServicioInvalidoException(
+                    "La sede '" + sede.getNombre() + "' debe tener al menos un empleado asociado al servicio");
+        }
+
+        for (RegistrarServicioRequest.EmpleadoDelServicio empleadoSolicitud : sedeSolicitud.getEmpleados()) {
+            if (empleadoSolicitud.getEspacios() == null) {
+                empleadoSolicitud.setEspacios(new ArrayList<>());
+            }
+
+            // RN7: cada empleado con al menos un espacio.
+            if (empleadoSolicitud.getEspacios().isEmpty()) {
+                throw new ServicioInvalidoException(
+                        "En la sede '" + sede.getNombre() + "' el empleado '" + empleadoSolicitud.getNombre()
+                                + "' debe tener al menos un espacio asignado");
+            }
+
+            // Los espacios del empleado deben ser espacios registrados en esa misma sede.
+            for (String identificador : empleadoSolicitud.getEspacios()) {
+                if (identificador == null || !clavesEspacios.contains(clave(identificador))) {
+                    throw new ServicioInvalidoException(
+                            "En la sede '" + sede.getNombre() + "' el empleado '" + empleadoSolicitud.getNombre()
+                                    + "' tiene asignado el espacio '" + identificador
+                                    + "', que no está registrado en esa sede");
+                }
+            }
+        }
+    }
+
+    // "Cabina 1", " cabina 1 " y "CABINA 1" se consideran el mismo espacio.
+    private String clave(String identificador) {
+        return identificador.trim().toLowerCase();
+    }
+
+    // Identificadores de los espacios asignados a un empleado (para la respuesta).
+    public List<String> obtenerEspaciosDeEmpleado(Empleado empleado) {
+        List<String> identificadores = new ArrayList<>();
+        for (EspacioEmpleado espacioEmpleado : espacioEmpleadoRepository.findByEmpleado_Id(empleado.getId())) {
+            identificadores.add(espacioEmpleado.getRecurso().getIdentificador());
+        }
+        return identificadores;
     }
 
     // RN7/RN8/RN9/RN10

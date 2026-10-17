@@ -55,6 +55,11 @@ public class ManejadorGlobalExcepciones {
         return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(ServicioInvalidoException.class)
+    public ResponseEntity<Map<String, Object>> manejarServicioInvalido(ServicioInvalidoException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     // HU-01 / HU-02
     @ExceptionHandler(CorreoYaRegistradoException.class)
     public ResponseEntity<Map<String, Object>> manejarCorreoYaRegistrado(CorreoYaRegistradoException ex) {

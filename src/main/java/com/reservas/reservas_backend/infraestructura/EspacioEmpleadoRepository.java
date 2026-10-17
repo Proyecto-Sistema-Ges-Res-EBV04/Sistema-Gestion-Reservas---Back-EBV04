@@ -12,6 +12,9 @@ public interface EspacioEmpleadoRepository extends JpaRepository<EspacioEmpleado
 
     List<EspacioEmpleado> findByEmpleado_Servicio_IdAndEmpleado_Sede_Id(Integer idServicio, Integer idSede);
 
+    // HU-11: espacios de un empleado, para mostrarlos en la consulta del servicio.
+    List<EspacioEmpleado> findByEmpleado_Id(Integer idEmpleado);
+
     // DELETE directo (no derivado): se ejecuta de inmediato, antes de insertar la nueva
     // configuración, para no chocar con la restricción única empleado+recurso.
     @Modifying
