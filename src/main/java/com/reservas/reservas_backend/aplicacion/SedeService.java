@@ -22,7 +22,7 @@ public class SedeService {
         this.empresaContexto = empresaContexto;
     }
 
-    // RN1/RN2/RN3/RN6
+    // RN1/RN2/RN3/RN4/RN7/RN8/RN9
     public Sede registrarSede(RegistrarSedeRequest request) {
         Empresa empresa = empresaContexto.obtenerEmpresaAutenticada();
 
@@ -31,6 +31,9 @@ public class SedeService {
         sede.setNombre(request.getNombre());
         sede.setDireccion(request.getDireccion());
         sede.setMunicipio(request.getMunicipio());
+        sede.setPais(request.getPais());
+        sede.setDescripcion(request.getDescripcion());
+        sede.setReferencia(request.getReferencia());
         sede.setTelefono(request.getTelefono());
         sede.setActiva(true);
         sede.setFechaCreacion(LocalDateTime.now());
