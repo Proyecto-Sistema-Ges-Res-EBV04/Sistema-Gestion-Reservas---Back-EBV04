@@ -3,6 +3,7 @@ package com.reservas.reservas_backend.aplicacion;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -11,11 +12,15 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // Clave secreta para firmar los tokens (en un proyecto real esto va en variables de entorno, no en el código)
-    private final SecretKey clave = Keys.hmacShaKeyFor(
-            "clave-secreta-super-larga-para-firmar-los-tokens-jwt-1234567890".getBytes());
+    // Clave secreta para firmar los tokens. Se lee de jwt.secret en application.properties,
+    // que en Render toma el valor de la variable de entorno JWT_SECRET.
+    private final SecretKey clave;
 
     private static final long DURACION_TOKEN_MS = 1000 * 60 * 60; // 1 hora
+
+    public JwtService(@Value("${jwt.secret}") String secreto) {
+        this.clave = Keys.hmacShaKeyFor(secreto.getBytes());
+    }
 
     public String generarToken(String correo, String tipoCuenta) {
         return Jwts.builder()
