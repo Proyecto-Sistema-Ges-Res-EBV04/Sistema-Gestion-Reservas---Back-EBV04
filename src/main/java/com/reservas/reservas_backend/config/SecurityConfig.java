@@ -66,7 +66,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/login", "/h2-console/**").permitAll()
-                        // HU-01/HU-02: cualquier visitante puede crear una cuenta de Usuario o de Empresa.
                         .requestMatchers(HttpMethod.POST, "/api/usuarios", "/api/empresas").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .anyRequest().authenticated())
