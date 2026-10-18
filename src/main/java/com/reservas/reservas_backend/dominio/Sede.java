@@ -30,7 +30,21 @@ public class Sede {
     @Column(nullable = false, length = 100)
     private String municipio;
 
-    @Column(nullable = false, length = 20)
+    // HU-09 (RN2): país como código ISO de 2 letras (ej. "CO"), el mismo que maneja el front.
+    // Se deja nullable en BD para no fallar en bases que ya tienen sedes guardadas.
+    @Column(length = 2)
+    private String pais;
+
+    // HU-09 (RN2/RN4): máximo 300 caracteres.
+    @Column(length = 300)
+    private String descripcion;
+
+    // HU-09 (RN3): punto de referencia opcional.
+    @Column(length = 200)
+    private String referencia;
+
+    // La HU-09 no pide teléfono de sede; queda opcional (ver scripts/bd/08).
+    @Column(length = 20)
     private String telefono;
 
     // RN6 (HU-09): la sede queda activa al finalizar correctamente su registro.

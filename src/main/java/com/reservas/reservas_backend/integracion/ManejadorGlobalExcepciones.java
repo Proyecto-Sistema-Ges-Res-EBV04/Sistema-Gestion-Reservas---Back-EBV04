@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -54,6 +55,11 @@ public class ManejadorGlobalExcepciones {
         return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(ServicioInvalidoException.class)
+    public ResponseEntity<Map<String, Object>> manejarServicioInvalido(ServicioInvalidoException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     // HU-01 / HU-02
     @ExceptionHandler(CorreoYaRegistradoException.class)
     public ResponseEntity<Map<String, Object>> manejarCorreoYaRegistrado(CorreoYaRegistradoException ex) {
@@ -77,11 +83,39 @@ public class ManejadorGlobalExcepciones {
         return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    // HU-23
+    @ExceptionHandler(UsuarioNoAutenticadoException.class)
+    public ResponseEntity<Map<String, Object>> manejarUsuarioNoAutenticado(UsuarioNoAutenticadoException ex) {
+        return construirRespuesta(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConsultaCitasInvalidaException.class)
+    public ResponseEntity<Map<String, Object>> manejarConsultaCitasInvalida(ConsultaCitasInvalidaException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // Parámetros de consulta con formato inválido (ej. estado=OTRO o una fecha mal escrita).
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> manejarParametroInvalido(MethodArgumentTypeMismatchException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST,
+                "El valor '" + ex.getValue() + "' no es válido para el filtro '" + ex.getName() + "'");
+    }
+
     // Errores de validación de @Valid en el LoginRequest (ej. @Email, @NotBlank)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> manejarErroresDeValidacion(MethodArgumentNotValidException ex) {
         String mensaje = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
         return construirRespuesta(HttpStatus.BAD_REQUEST, mensaje);
+    }
+        // HU-22
+    @ExceptionHandler(DatosCitaInvalidosException.class)
+    public ResponseEntity<Map<String, Object>> manejarDatosCitaInvalidos(DatosCitaInvalidosException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(SinDisponibilidadException.class)
+    public ResponseEntity<Map<String, Object>> manejarSinDisponibilidad(SinDisponibilidadException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje) {
@@ -92,4 +126,5 @@ public class ManejadorGlobalExcepciones {
         body.put("message", mensaje);
         return new ResponseEntity<>(body, status);
     }
+ 
 }

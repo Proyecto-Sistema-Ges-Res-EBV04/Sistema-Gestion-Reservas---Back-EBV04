@@ -1,57 +1,33 @@
 package com.reservas.reservas_backend.integracion;
 
-import com.reservas.reservas_backend.dominio.DiaSemana;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
-import java.time.LocalTime;
 import java.util.List;
-import java.util.Set;
 
-// HU-16: Configurar capacidad de atención para una combinación servicio+sede+horario.
+// HU-16: asignación de horarios (franjas) y espacios (recursos) al personal de un servicio en una sede.
+// RN8: no hay campo de capacidad; se calcula a partir de estas asignaciones.
 @Data
 public class ConfigurarCapacidadRequest {
 
-    @NotEmpty(message = "Debes seleccionar al menos un día de la semana")
-    private Set<DiaSemana> diasSemana;
-
-    @NotNull(message = "La hora de inicio es obligatoria")
-    private LocalTime horaInicio;
-
-    @NotNull(message = "La hora de fin es obligatoria")
-    private LocalTime horaFin;
-
-    // RN3: entero mayor o igual a 1.
-    @NotNull(message = "La capacidad es obligatoria")
-    @Positive(message = "La capacidad debe ser un número entero mayor o igual a 1")
-    private Integer capacidad;
-
+    @NotNull(message = "Debes enviar el personal con sus horarios y espacios")
     @Valid
-    private List<RecursoAsignado> recursos;
-
-    @Valid
-    private List<EmpleadoLimite> empleados;
+    private List<AsignacionEmpleado> empleados;
 
     @Data
-    public static class RecursoAsignado {
-        @NotNull(message = "El id del recurso es obligatorio")
-        private Integer idRecurso;
-
-        // RN7: opcional, no todo recurso necesita un empleado responsable.
-        private Integer idEmpleado;
-    }
-
-    @Data
-    public static class EmpleadoLimite {
-        @NotNull(message = "El id del empleado es obligatorio")
+    public static class AsignacionEmpleado {
+        // RN2: empleado ya asociado al servicio y la sede...
         private Integer idEmpleado;
 
-        // RN8: máximo de recursos/unidades simultáneas que puede atender.
-        @NotNull(message = "El límite simultáneo del empleado es obligatorio")
-        @Positive(message = "El límite simultáneo del empleado debe ser mayor o igual a 1")
-        private Integer limiteSimultaneo;
+        // ...o personal adicional agregado durante el flujo (mínimo nombre y cargo o función).
+        private String nombre;
+        private String cargo;
+
+        // RN3: uno o varios horarios (ids de franjas).
+        private List<Integer> idsFranjas;
+
+        // RN5: uno o varios espacios (ids de recursos).
+        private List<Integer> idsEspacios;
     }
 }

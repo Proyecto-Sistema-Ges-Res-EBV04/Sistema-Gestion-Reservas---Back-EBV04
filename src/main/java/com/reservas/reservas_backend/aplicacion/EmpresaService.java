@@ -105,7 +105,7 @@ public class EmpresaService {
         if (!servicioSedeRepository.existsByServicio_Empresa_Id(empresa.getId())) {
             faltantes.add("al menos un servicio asociado a una sede");
         }
-        if (!capacidadAtencionRepository.existsByServicio_Empresa_Id(empresa.getId())) {
+        if (!capacidadAtencionRepository.existsByServicio_Empresa_IdAndCapacidadGreaterThan(empresa.getId(), 0)) {
             faltantes.add("al menos una capacidad de atención configurada (mínimo 1)");
         }
 

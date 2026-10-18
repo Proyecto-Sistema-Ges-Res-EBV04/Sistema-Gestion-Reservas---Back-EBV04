@@ -11,12 +11,14 @@ public class RecursoResponse {
     private Integer id;
     private String identificador;
     private Integer idSede;
+    private Boolean exclusivo;
 
     public static RecursoResponse desde(Recurso recurso) {
         return new RecursoResponse(
                 recurso.getId(),
                 recurso.getIdentificador(),
-                recurso.getSede().getId()
+                recurso.getSede().getId(),
+                recurso.getExclusivo()
         );
     }
 }
