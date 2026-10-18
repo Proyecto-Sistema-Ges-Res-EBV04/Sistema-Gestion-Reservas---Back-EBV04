@@ -13,4 +13,5 @@ public record ConfigurarAgendaRequest(
         @NotNull LocalTime horaInicio,
         @NotNull LocalTime horaFin,
         @NotNull @Positive Integer rangoHora,   // en minutos
-        Boolean activo) {}
+        Boolean activo,
+        String Correo) {}

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.stream.Collectors;
 import java.time.temporal.ChronoUnit;
 import java.text.Normalizer;
 import java.time.*;
@@ -22,6 +23,7 @@ public class AgendaService {
     private final DiaRepository diaRepository;
     private final AgendaMapper mapper;
     private final FestivosService festivosService;
+    private final InicioSesionRepository inicioSesionRepository;
 
     @Value("${agenda.rango-maximo-dias:31}")
     private int rangoMaximoDias;
@@ -29,14 +31,21 @@ public class AgendaService {
     @Value("${agenda.horizonte-dias:30}")
     private int horizonteDias;
 
-    public AgendaService(AgendaRepository agendaRepository, DetalleAgendaRepository detalleAgendaRepository, DiaExcepcionRepository diaExcepcionRepository, DiaRepository diaRepository,
-                         AgendaMapper mapper, FestivosService festivosService) {
+    // Ids de la tabla tipousuario (pon los reales: SELECT id, nombre FROM tipousuario;)
+    private static final long TIPO_CLIENTE = 4L;
+    private static final Long[] TIPOS_ADMINISTRAN_AGENDA = {1L, 2L, 3L};
+
+    public AgendaService(AgendaRepository agendaRepository, DetalleAgendaRepository detalleAgendaRepository,
+                         DiaExcepcionRepository diaExcepcionRepository, DiaRepository diaRepository,
+                         AgendaMapper mapper, FestivosService festivosService,
+                         InicioSesionRepository inicioSesionRepository) {
         this.agendaRepository = agendaRepository;
         this.detalleAgendaRepository = detalleAgendaRepository;
         this.diaExcepcionRepository = diaExcepcionRepository;
         this.diaRepository = diaRepository;
         this.mapper = mapper;
         this.festivosService = festivosService;
+        this.inicioSesionRepository = inicioSesionRepository;
     }
 
     // =====================================================================
@@ -122,6 +131,10 @@ public class AgendaService {
     // =====================================================================
     @Transactional
     public boolean configurarAgendaServicioEmpleado(ConfigurarAgendaRequest req) {
+        // Solo ciertos tipos de usuario pueden configurar la agenda
+        if (!tipoPermitido(req.Correo(), TIPOS_ADMINISTRAN_AGENDA)) {
+            return false;
+        }
         if (!horarioValido(req.idSedeServicio(), req.horaInicio(), req.horaFin(), req.rangoHora())) {
             return false;
         }
@@ -136,7 +149,7 @@ public class AgendaService {
             // Se valida todo antes de guardar nada
             for (DiaDto dia : req.dias()) {
                 if (dia.id() == null || !diaRepository.existsById(dia.id())) {
-                   return false;
+                    return false;
                 }
                 if (activo && agendaRepository.existeSolape(req.idSedeServicio(), dia.id(),
                         req.horaInicio(), req.horaFin(), true, 0L)) {
@@ -153,7 +166,7 @@ public class AgendaService {
         // ---- Modificar ----
         Optional<Agenda> existente = agendaRepository.findById(idAgenda);
         if (existente.isEmpty()) {
-           return false;
+            return false;
         }
         if (detalleAgendaRepository.existsByIdagendaAndIdestadocitaNot(idAgenda, 2L)) {
             return false;
@@ -183,6 +196,10 @@ public class AgendaService {
     // =====================================================================
     @Transactional
     public boolean configurarDiaFestivo(ConfigurarDiaFestivoRequest req) {
+        // Solo ciertos tipos de usuario pueden configurar festivos
+        if (!tipoPermitido(req.Correo(), TIPOS_ADMINISTRAN_AGENDA)) {
+            return false;
+        }
         if (req.fecha() == null
                 || !horarioValido(req.idSedeServicio(), req.horaInicio(), req.horaFin(), req.rangoHora())) {
             return false;
@@ -206,7 +223,7 @@ public class AgendaService {
         // ---- Modificar ----
         Optional<Diaexcepcion> existente = diaExcepcionRepository.findById(idDiaFestivo);
         if (existente.isEmpty()) {
-           return false;
+            return false;
         }
         if (detalleAgendaRepository.existsByIddiaexcepcionAndIdestadocitaNot(idDiaFestivo, 2L)) {
             return false;
@@ -233,6 +250,54 @@ public class AgendaService {
         return liberarCita(req.idDetalleAgenda(), ahora);
     }
 
+    @Transactional(readOnly = true)
+    public List<CitaUsuarioDto> listarCitasReservadasUsuario(ListarCitasUsuarioRequest req) {
+        if (req.fechaDesde() != null && req.fechaHasta() != null
+                && req.fechaHasta().isBefore(req.fechaDesde())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "fechaHasta no puede ser anterior a fechaDesde");
+        }
+        if (!inicioSesionRepository.existsById(Math.toIntExact(req.idIniciosesion()))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no existe");
+        }
+
+        // Citas reservadas (estado 3), con el rango opcional
+        List<Detalleagenda> citas = detalleAgendaRepository
+                .findByIdiniciosesionAndIdestadocitaOrderByFechaAscHoraAsc(req.idIniciosesion(), 3L)
+                .stream()
+                .filter(c -> req.fechaDesde() == null || !c.getFecha().isBefore(req.fechaDesde()))
+                .filter(c -> req.fechaHasta() == null || !c.getFecha().isAfter(req.fechaHasta()))
+                .toList();
+        if (citas.isEmpty()) return List.of();
+
+        // Se traen las agendas y excepciones de una vez (evita una consulta por cada cita)
+        Map<Long, Agenda> agendas = agendaRepository.findAllById(
+                        citas.stream().map(Detalleagenda::getIdagenda)
+                                .filter(Objects::nonNull).distinct().toList())
+                .stream().collect(Collectors.toMap(Agenda::getId, a -> a));
+        Map<Long, Diaexcepcion> excepciones = diaExcepcionRepository.findAllById(
+                        citas.stream().map(Detalleagenda::getIddiaexcepcion)
+                                .filter(Objects::nonNull).distinct().toList())
+                .stream().collect(Collectors.toMap(Diaexcepcion::getId, e -> e));
+
+        List<CitaUsuarioDto> resultado = new ArrayList<>();
+        for (Detalleagenda c : citas) {
+            Long idSedeServicio = null;
+            long minutos = 0;
+            if (c.getIdagenda() != null && agendas.containsKey(c.getIdagenda())) {
+                Agenda a = agendas.get(c.getIdagenda());
+                idSedeServicio = a.getIdsedeservicio();
+                minutos = minutos(a.getRangohora());
+            } else if (c.getIddiaexcepcion() != null && excepciones.containsKey(c.getIddiaexcepcion())) {
+                Diaexcepcion e = excepciones.get(c.getIddiaexcepcion());
+                idSedeServicio = e.getIdsedeservicio();
+                minutos = valor(e.getRangohora());
+            }
+            resultado.add(mapper.aCitaUsuario(c, idSedeServicio, minutos));
+        }
+        return resultado;
+    }
+
     private ResultadoCitaDto crearCita(ModificarCitaRequest req, LocalDateTime ahora) {
         long idAgenda = valor(req.idAgenda());
         long idExcepcion = valor(req.idDiaExcepcion());
@@ -243,16 +308,29 @@ public class AgendaService {
         if (req.fecha() == null || req.hora() == null) {
             return mapper.error("La fecha y la hora de la cita son obligatorias");
         }
-        if (req.fecha().isBefore(LocalDate.now())) {
-            return mapper.error("No se puede agendar en una fecha pasada");
+        // La fecha y la hora no pueden haber pasado (si es hoy, la hora debe ser posterior a la actual)
+        if (LocalDateTime.of(req.fecha(), req.hora()).isBefore(ahora)) {
+            return mapper.error("No se puede agendar en un horario que ya pasó");
         }
 
+        // El inicio de sesión debe existir y ser de tipo cliente
+        Optional<InicioSesion> sesion = valor(req.idIniciosesion()) == 0
+                ? Optional.empty()
+                : inicioSesionRepository.findById(Math.toIntExact(req.idIniciosesion()));
+        if (sesion.isEmpty()) {
+            return mapper.error("El usuario no existe");
+        }
+        if (tipoDe(sesion.get()) != TIPO_CLIENTE) {
+            return mapper.error("Solo un usuario de tipo cliente puede tener citas");
+        }
 
+        // El horario debe ser un hueco real de la agenda o del día de excepción
         Optional<HorarioDisponibleDto> hueco = buscarHueco(idAgenda, idExcepcion, req.fecha(), req.hora());
         if (hueco.isEmpty()) {
             return mapper.error("El horario no corresponde a la agenda o al día de excepción indicado");
         }
 
+        // El hueco no debe estar tomado por otra persona
         boolean ocupado = idAgenda != 0
                 ? detalleAgendaRepository.existsByIdagendaAndFechaAndHoraAndIdestadocitaNot(
                 idAgenda, req.fecha(), req.hora(), 2L)
@@ -262,7 +340,7 @@ public class AgendaService {
             return mapper.error("Ya hay una cita reservada en ese horario");
         }
 
-        // NUEVO: el usuario no puede tener otra cita que se cruce (todas las empresas)
+        // El usuario no puede tener otra cita que se cruce (todas las empresas)
         if (usuarioTieneCruce(req.idIniciosesion(), req.fecha(),
                 hueco.get().horaInicio(), hueco.get().horaFin())) {
             return mapper.error("El usuario ya tiene una cita que se cruza con ese horario");
@@ -271,14 +349,16 @@ public class AgendaService {
         Detalleagenda guardada = detalleAgendaRepository.save(mapper.aDetalle(req, ahora));
         return mapper.exito(guardada.getId(), "Cita creada");
     }
+
+    /** Pasa la cita de estado 3 a 2 y actualiza la fecha de modificación. */
     private ResultadoCitaDto liberarCita(Long idDetalleAgenda, LocalDateTime ahora) {
         Optional<Detalleagenda> opt = detalleAgendaRepository.findById(idDetalleAgenda);
         if (opt.isEmpty()) {
             return mapper.error("La cita no existe");
         }
         Detalleagenda cita = opt.get();
-        if (valor(cita.getIdestadocita()) != 2L) {
-            return mapper.error("Solo se pueden modificar citas en estado " + 2L);
+        if (valor(cita.getIdestadocita()) != 3L) {
+            return mapper.error("Solo se pueden modificar citas en estado 3");
         }
         cita.setIdestadocita(2L);
         cita.setFechamodificacion(ahora);
@@ -289,27 +369,6 @@ public class AgendaService {
     // =====================================================================
     // Utilidades privadas
     // =====================================================================
-
-    /** Comprueba que la fecha/hora sea un hueco real de la agenda o del día de excepción. */
-    private boolean esHorarioValido(long idAgenda, long idExcepcion, LocalDate fecha, LocalTime hora) {
-        List<HorarioDisponibleDto> huecos;
-        if (idAgenda != 0) {
-            Optional<Agenda> opt = agendaRepository.findById(idAgenda);
-            if (opt.isEmpty() || !Boolean.TRUE.equals(opt.get().getActivo())) return false;
-            Agenda a = opt.get();
-            // Si ese día hay excepción para el servicio, la agenda normal no aplica
-            if (diaExcepcionRepository.existsByIdsedeservicioAndFecha(a.getIdsedeservicio(), fecha)) return false;
-            if (mapaDias().get(a.getIddia()) != fecha.getDayOfWeek()) return false;
-            huecos = generar(fecha, a.getHorainicio(), a.getHorafin(), minutos(a.getRangohora()), a.getId(), null);
-        } else {
-            Optional<Diaexcepcion> opt = diaExcepcionRepository.findById(idExcepcion);
-            if (opt.isEmpty() || !Boolean.TRUE.equals(opt.get().getActivo())) return false;
-            Diaexcepcion e = opt.get();
-            if (!fecha.equals(e.getFecha())) return false;
-            huecos = generar(fecha, e.getHorainicio(), e.getHorafin(), valor(e.getRangohora()), null, e.getId());
-        }
-        return huecos.stream().anyMatch(h -> h.horaInicio().equals(hora));
-    }
 
     private List<HorarioDisponibleDto> generar(LocalDate fecha, LocalTime inicio, LocalTime fin,
                                                long rangoMin, Long idAgenda, Long idExcepcion) {
@@ -328,6 +387,7 @@ public class AgendaService {
                 && inicio.isBefore(fin);
     }
 
+    /** Busca el hueco exacto (fecha y hora) dentro de la agenda o del día de excepción. */
     private Optional<HorarioDisponibleDto> buscarHueco(long idAgenda, long idExcepcion,
                                                        LocalDate fecha, LocalTime hora) {
         List<HorarioDisponibleDto> huecos;
@@ -335,8 +395,8 @@ public class AgendaService {
             Optional<Agenda> opt = agendaRepository.findById(idAgenda);
             if (opt.isEmpty() || !Boolean.TRUE.equals(opt.get().getActivo())) return Optional.empty();
             Agenda a = opt.get();
+            // Si ese día hay excepción para el servicio, la agenda normal no aplica
             if (diaExcepcionRepository.existsByIdsedeservicioAndFecha(a.getIdsedeservicio(), fecha)) return Optional.empty();
-            var dayOfWeek=fecha.getDayOfWeek();
             if (mapaDias().get(a.getIddia()) != fecha.getDayOfWeek()) return Optional.empty();
             huecos = generar(fecha, a.getHorainicio(), a.getHorafin(), minutos(a.getRangohora()), a.getId(), null);
         } else {
@@ -372,7 +432,6 @@ public class AgendaService {
         return false;
     }
 
-
     /** id del día -> día de la semana, leyendo el nombre desde la tabla dia (Lunes, Martes, ...). */
     private Map<Long, DayOfWeek> mapaDias() {
         Map<Long, DayOfWeek> mapa = new HashMap<>();
@@ -385,6 +444,7 @@ public class AgendaService {
 
     private DayOfWeek aDiaSemana(String nombre) {
         if (nombre == null) return null;
+        // Se quitan las tildes, por eso los nombres de abajo van sin tilde
         String n = Normalizer.normalize(nombre, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "").toLowerCase().trim();
         return switch (n) {
@@ -393,7 +453,7 @@ public class AgendaService {
             case "miercoles" -> DayOfWeek.WEDNESDAY;
             case "jueves" -> DayOfWeek.THURSDAY;
             case "viernes" -> DayOfWeek.FRIDAY;
-            case "sábado" -> DayOfWeek.SATURDAY;
+            case "sabado" -> DayOfWeek.SATURDAY;
             case "domingo" -> DayOfWeek.SUNDAY;
             default -> null;
         };
@@ -409,5 +469,26 @@ public class AgendaService {
 
     private long valor(Long v) {
         return v == null ? 0L : v;
+    }
+
+    // ---------------------------------------------------------------------
+    // Tipo de usuario (se obtiene desde InicioSesion)
+    // ---------------------------------------------------------------------
+
+    /**
+     * Id del tipo de usuario de un inicio de sesión.
+     * AJUSTA ESTA LÍNEA al getter real de tu clase InicioSesion
+     * (escribe "is.get" y presiona Ctrl+Espacio para ver los que existen).
+     */
+    private long tipoDe(InicioSesion is) {
+        TipoUsuario tipo = is.getTipoUsuario();   // <-- cambia por el getter real
+        return tipo == null ? 0L : tipo.getId();
+    }
+
+    /** ¿El usuario autenticado (por correo) es de uno de los tipos permitidos? */
+    private boolean tipoPermitido(String correo, Long... permitidos) {
+        return inicioSesionRepository.findByCorreoElectronico(correo)
+                .map(is -> Arrays.asList(permitidos).contains(tipoDe(is)))
+                .orElse(false);
     }
 }

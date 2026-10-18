@@ -43,4 +43,10 @@ public class AgendaController {
         ResultadoCitaDto r = agendaService.modificarCitaUsuario(req);
         return r.exito() ? ResponseEntity.ok(r) : ResponseEntity.badRequest().body(r);
     }
+
+    @PostMapping("/citas-usuario")
+    public ResponseEntity<List<CitaUsuarioDto>> listarCitasReservadasUsuario(
+            @Valid @RequestBody ListarCitasUsuarioRequest req) {
+        return ResponseEntity.ok(agendaService.listarCitasReservadasUsuario(req));
+    }
 }

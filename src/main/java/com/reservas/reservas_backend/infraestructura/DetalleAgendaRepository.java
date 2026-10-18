@@ -29,4 +29,6 @@ public interface DetalleAgendaRepository extends JpaRepository<Detalleagenda, Lo
 
     List<Detalleagenda> findByIdiniciosesionAndFechaAndIdestadocitaNot(
             Long idiniciosesion, LocalDate fecha, Long idestadocita);
+    List<Detalleagenda> findByIdiniciosesionAndIdestadocitaOrderByFechaAscHoraAsc(
+            Long idiniciosesion, Long idestadocita);
 }

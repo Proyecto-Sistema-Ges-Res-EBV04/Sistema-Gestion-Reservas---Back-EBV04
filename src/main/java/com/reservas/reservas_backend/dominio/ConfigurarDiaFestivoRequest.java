@@ -13,4 +13,5 @@ public record ConfigurarDiaFestivoRequest(
         Boolean activo,
         @NotNull LocalTime horaInicio,
         @NotNull LocalTime horaFin,
-        @NotNull @Positive Integer rangoHora) {}   // en minutos
+        @NotNull @Positive Integer rangoHora,
+        String Correo) {}   // en minutos

@@ -71,4 +71,10 @@ public class AgendaMapper {
         d.setFechamodificacion(ahora);
         return d;
     }
+    public CitaUsuarioDto aCitaUsuario(Detalleagenda d, Long idSedeServicio, long minutos) {
+        return new CitaUsuarioDto(
+                d.getId(), d.getFecha(), d.getHora(), d.getHora().plusMinutes(minutos),
+                (int) minutos, d.getDescripcion(), d.getIdestadocita(),
+                d.getIdagenda(), d.getIddiaexcepcion(), idSedeServicio);
+    }
 }
