@@ -35,6 +35,15 @@ public class ServicioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(aRespuesta(servicio));
     }
 
+    @GetMapping
+    public ResponseEntity<List<ServicioResponse>> listarServicios() {
+        List<ServicioResponse> respuesta = new ArrayList<>();
+        for (Servicio servicio : servicioService.listarServicios()) {
+            respuesta.add(aRespuesta(servicio));
+        }
+        return ResponseEntity.ok(respuesta);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ServicioResponse> consultarServicio(@PathVariable Integer id) {
         Servicio servicio = servicioService.consultarServicio(id);

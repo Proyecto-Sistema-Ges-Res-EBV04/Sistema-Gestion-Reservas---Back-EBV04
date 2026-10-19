@@ -1,5 +1,7 @@
 package com.reservas.reservas_backend.integracion;
 
+import com.reservas.reservas_backend.dominio.UnidadDuracion;
+
 import java.util.List;
 
 public record BusquedaServiciosResponse(
@@ -11,6 +13,9 @@ public record BusquedaServiciosResponse(
             Integer id,
             String nombre,
             String descripcion,
+            Integer duracion,
+            UnidadDuracion unidadDuracion,
+            Integer duracionMinutos,
             Integer empresaId,
             String empresa,
             List<SedeEncontrada> sedes) {
@@ -20,6 +25,7 @@ public record BusquedaServiciosResponse(
             Integer id,
             String nombre,
             String direccion,
-            String municipio) {
+            String municipio,
+            String pais) {
     }
 }

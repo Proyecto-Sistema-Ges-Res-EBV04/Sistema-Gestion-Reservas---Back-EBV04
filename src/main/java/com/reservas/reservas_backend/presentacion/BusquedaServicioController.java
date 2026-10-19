@@ -25,9 +25,10 @@ public class BusquedaServicioController {
             @RequestParam(name = "palabra", required = false) String palabra,
             @RequestParam(name = "empresaId", required = false) Integer empresaId,
             @RequestParam(name = "sedeId", required = false) Integer sedeId,
-            @RequestParam(name = "municipio", required = false) String municipio) {
+            @RequestParam(name = "municipio", required = false) String municipio,
+            @RequestParam(name = "pais", required = false) String pais) {
 
         return ResponseEntity.ok(
-                busquedaServicioService.buscar(palabra, empresaId, sedeId, municipio));
+                busquedaServicioService.buscar(palabra, empresaId, sedeId, municipio, pais));
     }
 }
