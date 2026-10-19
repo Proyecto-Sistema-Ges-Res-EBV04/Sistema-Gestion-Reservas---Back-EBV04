@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 // La restricción única evita dos tipos con el mismo nombre (el código busca el rol por nombre).
-// Tiene nombre fijo para que coincida con scripts/bd/01_restricciones_unicas.sql.
 @Entity
 @Table(name = "tipousuario",
         uniqueConstraints = @UniqueConstraint(name = "uk_tipousuario_nombre",
