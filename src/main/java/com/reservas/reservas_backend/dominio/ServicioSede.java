@@ -11,7 +11,8 @@ import lombok.AllArgsConstructor;
 @Entity
 @Table(name = "serviciosede",
         uniqueConstraints = @UniqueConstraint(name = "uk_serviciosede_servicio_sede",
-                columnNames = {"idservicio", "idsede"}))
+                columnNames = {"idservicio", "idsede"}),
+        indexes = @Index(name = "ix_serviciosede_idsede", columnList = "idsede"))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
