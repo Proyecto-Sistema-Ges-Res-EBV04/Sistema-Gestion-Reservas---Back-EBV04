@@ -224,6 +224,11 @@ public class ServicioService {
         return recursoRepository.save(recurso);
     }
 
+    public List<Servicio> listarServicios() {
+        Empresa empresa = empresaContexto.obtenerEmpresaAutenticada();
+        return servicioRepository.findByEmpresa_Id(empresa.getId());
+    }
+
     public Servicio consultarServicio(Integer idServicio) {
         Empresa empresa = empresaContexto.obtenerEmpresaAutenticada();
         return obtenerServicioDeLaEmpresa(idServicio, empresa);

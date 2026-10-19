@@ -18,7 +18,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -47,7 +47,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(origenesPermitidos.split(",")));
+        List<String> origenes = new ArrayList<>();
+        for (String origen : origenesPermitidos.split(",")) {
+            String limpio = origen.trim();
+            if (!limpio.isEmpty()) {
+                origenes.add(limpio);
+            }
+        }
+        configuration.setAllowedOrigins(origenes);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -65,7 +72,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/login", "/h2-console/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/h2-console/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios", "/api/empresas").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .anyRequest().authenticated())
