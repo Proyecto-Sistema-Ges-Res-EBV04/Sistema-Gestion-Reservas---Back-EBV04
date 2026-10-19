@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "servicio")
+@Table(name = "servicio", indexes = @Index(name = "ix_servicio_idempresa", columnList = "idempresa"))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "sede")
+@Table(name = "sede", indexes = @Index(name = "ix_sede_idempresa", columnList = "idempresa"))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -43,7 +43,7 @@ public class Sede {
     @Column(length = 200)
     private String referencia;
 
-    // La HU-09 no pide teléfono de sede; queda opcional (ver scripts/bd/08).
+    // La HU-09 no pide teléfono de sede; queda opcional.
     @Column(length = 20)
     private String telefono;
 
