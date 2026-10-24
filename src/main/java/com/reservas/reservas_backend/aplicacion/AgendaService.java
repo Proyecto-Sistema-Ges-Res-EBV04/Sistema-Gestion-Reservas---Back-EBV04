@@ -262,8 +262,9 @@ public class AgendaService {
         }
 
         // Citas reservadas (estado 3), con el rango opcional
+        // Todas las citas del usuario (cualquier estado, incluidas las canceladas), con el rango opcional
         List<Detalleagenda> citas = detalleAgendaRepository
-                .findByIdiniciosesionAndIdestadocitaOrderByFechaAscHoraAsc(req.idIniciosesion(), 3L)
+                .findByIdiniciosesionOrderByFechaAscHoraAsc(req.idIniciosesion())
                 .stream()
                 .filter(c -> req.fechaDesde() == null || !c.getFecha().isBefore(req.fechaDesde()))
                 .filter(c -> req.fechaHasta() == null || !c.getFecha().isAfter(req.fechaHasta()))

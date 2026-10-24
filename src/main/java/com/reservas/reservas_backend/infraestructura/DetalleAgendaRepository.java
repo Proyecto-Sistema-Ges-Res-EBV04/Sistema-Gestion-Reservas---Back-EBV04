@@ -31,4 +31,5 @@ public interface DetalleAgendaRepository extends JpaRepository<Detalleagenda, Lo
             Long idiniciosesion, LocalDate fecha, Long idestadocita);
     List<Detalleagenda> findByIdiniciosesionAndIdestadocitaOrderByFechaAscHoraAsc(
             Long idiniciosesion, Long idestadocita);
+    List<Detalleagenda> findByIdiniciosesionOrderByFechaAscHoraAsc(Long idIniciosesion);
 }
