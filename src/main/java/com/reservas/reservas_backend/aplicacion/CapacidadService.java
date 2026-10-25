@@ -98,8 +98,12 @@ public class CapacidadService {
     }
 
     public List<FranjaResponse> consultarFranjas(Integer idServicio, Integer idSede) {
-        Servicio servicio = obtenerServicioDeLaEmpresa(idServicio);
-        obtenerSedeDeLaEmpresa(idSede, servicio.getEmpresa());
+        if (!servicioRepository.existsById(idServicio)) {
+            throw new ServicioNoEncontradoException("El servicio " + idServicio + " no existe");
+        }
+        if (!sedeRepository.existsById(idSede)) {
+            throw new SedeNoEncontradaException("La sede " + idSede + " no existe");
+        }
         validarAsociacion(idServicio, idSede);
 
         List<FranjaResponse> respuesta = new ArrayList<>();
