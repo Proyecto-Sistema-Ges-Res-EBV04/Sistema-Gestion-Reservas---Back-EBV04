@@ -11,7 +11,9 @@ import java.time.LocalTime;
 // Reserva de un Usuario para un servicio en una sede (la crea HU-22, la consulta HU-23).
 // La Empresa se obtiene a través del servicio.
 @Entity
-@Table(name = "cita", indexes = @Index(name = "ix_cita_usuario", columnList = "idusuario"))
+@Table(name = "cita", indexes = {
+        @Index(name = "ix_cita_usuario", columnList = "idusuario"),
+        @Index(name = "ix_cita_servicio_sede_fecha_hora", columnList = "idservicio, idsede, fecha, horainicio, estado")})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

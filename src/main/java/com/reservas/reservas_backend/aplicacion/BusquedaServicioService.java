@@ -2,6 +2,7 @@ package com.reservas.reservas_backend.aplicacion;
 
 import com.reservas.reservas_backend.dominio.Servicio;
 import com.reservas.reservas_backend.dominio.ServicioSede;
+import com.reservas.reservas_backend.dominio.UnidadDuracion;
 import com.reservas.reservas_backend.infraestructura.BusquedaServicioRepository;
 import com.reservas.reservas_backend.integracion.BusquedaServiciosResponse;
 import com.reservas.reservas_backend.integracion.BusquedaServiciosResponse.SedeEncontrada;
@@ -28,13 +29,14 @@ public class BusquedaServicioService {
 
     @Transactional(readOnly = true)
     public BusquedaServiciosResponse buscar(String palabra, Integer idEmpresa,
-                                            Integer idSede, String municipio) {
+                                            Integer idSede, String municipio, String pais) {
 
         List<ServicioSede> filas = busquedaRepository.buscar(
                 patron(palabra),
                 idEmpresa == null ? 0 : idEmpresa,
                 idSede == null ? 0 : idSede,
-                patron(municipio));
+                patron(municipio),
+                codigoPais(pais));
 
         // Una fila por servicio-sede -> se agrupa por servicio (RN4)
         Map<Integer, List<ServicioSede>> porServicio = filas.stream()
@@ -51,12 +53,16 @@ public class BusquedaServicioService {
                                     ss.getSede().getId(),
                                     ss.getSede().getNombre(),
                                     ss.getSede().getDireccion(),
-                                    ss.getSede().getMunicipio()))
+                                    ss.getSede().getMunicipio(),
+                                    ss.getSede().getPais()))
                             .toList();
                     return new ServicioEncontrado(
                             s.getId(),
                             s.getNombre(),
                             s.getDescripcion(),
+                            s.getDuracion(),
+                            s.getUnidadDuracion(),
+                            duracionEnMinutos(s),
                             s.getEmpresa().getId(),
                             s.getEmpresa().getNombre(),
                             sedes);
@@ -67,6 +73,20 @@ public class BusquedaServicioService {
         String mensaje = servicios.isEmpty() ? "No se encontraron resultados" : null;
 
         return new BusquedaServiciosResponse(mensaje, servicios.size(), servicios);
+    }
+
+    private Integer duracionEnMinutos(Servicio servicio) {
+        if (servicio.getUnidadDuracion() == UnidadDuracion.HORAS) {
+            return servicio.getDuracion() * 60;
+        }
+        return servicio.getDuracion();
+    }
+
+    private String codigoPais(String pais) {
+        if (pais == null || pais.isBlank()) {
+            return "";
+        }
+        return pais.trim().toUpperCase(Locale.ROOT);
     }
 
     private String patron(String texto) {

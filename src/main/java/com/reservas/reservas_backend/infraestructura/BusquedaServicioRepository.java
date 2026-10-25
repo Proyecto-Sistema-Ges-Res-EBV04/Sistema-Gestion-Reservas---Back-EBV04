@@ -26,10 +26,12 @@ public interface BusquedaServicioRepository extends JpaRepository<ServicioSede, 
           AND (:idEmpresa = 0 OR e.id = :idEmpresa)
           AND (:idSede = 0 OR sd.id = :idSede)
           AND LOWER(sd.municipio) LIKE :municipio
+          AND (:pais = '' OR UPPER(sd.pais) = :pais)
         ORDER BY s.nombre, sd.nombre
         """)
     List<ServicioSede> buscar(@Param("palabra") String palabra,
                               @Param("idEmpresa") Integer idEmpresa,
                               @Param("idSede") Integer idSede,
-                              @Param("municipio") String municipio);
+                              @Param("municipio") String municipio,
+                              @Param("pais") String pais);
 }

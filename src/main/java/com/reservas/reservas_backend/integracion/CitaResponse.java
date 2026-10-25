@@ -24,8 +24,12 @@ public class CitaResponse {
     private LocalTime horaInicio;
     private LocalTime horaFin;
     private EstadoConsultaCita estado;
+    private String empleado;
+    private String espacio;
 
     public static CitaResponse desde(Cita cita, EstadoConsultaCita estado) {
+        String empleado = cita.getEmpleado() != null ? cita.getEmpleado().getNombre() : null;
+        String espacio = cita.getRecurso() != null ? cita.getRecurso().getIdentificador() : null;
         return new CitaResponse(
                 cita.getId(),
                 cita.getServicio().getId(),
@@ -38,7 +42,9 @@ public class CitaResponse {
                 cita.getFecha(),
                 cita.getHoraInicio(),
                 cita.getHoraFin(),
-                estado
+                estado,
+                empleado,
+                espacio
         );
     }
 }

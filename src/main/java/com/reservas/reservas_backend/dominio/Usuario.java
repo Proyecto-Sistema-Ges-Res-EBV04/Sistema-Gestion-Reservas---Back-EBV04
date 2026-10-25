@@ -39,7 +39,7 @@ public class Usuario {
     @Column(name = "idmunicipio")
     private Integer idMunicipio;
 
-    @Column(length = 12)
+    @Column(length = 20)
     private String celular;
 
     @Column(name = "fechanacimiento")
