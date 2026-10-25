@@ -4,6 +4,9 @@ import com.reservas.reservas_backend.dominio.Cita;
 import com.reservas.reservas_backend.dominio.EstadoCita;
 import com.reservas.reservas_backend.dominio.Usuario;
 import com.reservas.reservas_backend.infraestructura.CitaRepository;
+import com.reservas.reservas_backend.integracion.CitaAjenaException;
+import com.reservas.reservas_backend.integracion.CitaNoCancelableException;
+import com.reservas.reservas_backend.integracion.CitaNoEncontradaException;
 import com.reservas.reservas_backend.integracion.CitaResponse;
 import com.reservas.reservas_backend.integracion.ConsultaCitasInvalidaException;
 import com.reservas.reservas_backend.integracion.EstadoConsultaCita;
@@ -74,6 +77,36 @@ public class CitaService {
                     : "No tienes citas para mostrar";
         }
         return new MisCitasResponse(citas.size(), mensaje, citas);
+    }
+
+    // HU-25: Cancelar cita.
+    @Transactional
+    public CitaResponse cancelarCita(Integer idCita) {
+        // RN1: solo un Usuario autenticado.
+        Usuario usuario = usuarioContexto.obtenerUsuarioAutenticado();
+
+        Cita cita = citaRepository.findById(idCita)
+                .orElseThrow(() -> new CitaNoEncontradaException("La cita no existe"));
+
+        // RN2: solo citas de su propia cuenta.
+        if (!cita.getUsuario().getId().equals(usuario.getId())) {
+            throw new CitaAjenaException("No puedes cancelar una cita que no es tuya");
+        }
+
+        // RN3/RN5/RN9: se valida al confirmar que siga programada y que sea futura.
+        if (cita.getEstado() != EstadoCita.PROGRAMADA) {
+            throw new CitaNoCancelableException("La cita ya fue cancelada o realizada y no puede cancelarse");
+        }
+        LocalDateTime ahora = LocalDateTime.now();
+        if (!LocalDateTime.of(cita.getFecha(), cita.getHoraInicio()).isAfter(ahora)) {
+            throw new CitaNoCancelableException("Solo se pueden cancelar citas futuras");
+        }
+
+        // RN6/RN7/RN8: se conserva el registro; HU-22 solo cuenta citas programadas, así se libera el cupo.
+        cita.setEstado(EstadoCita.CANCELADA);
+        cita.setFechaModificacion(ahora);
+        Cita guardada = citaRepository.save(cita);
+        return CitaResponse.desde(guardada, EstadoConsultaCita.CANCELADA);
     }
 
     // RN3: una cita programada cuya hora de fin ya pasó se muestra como realizada.

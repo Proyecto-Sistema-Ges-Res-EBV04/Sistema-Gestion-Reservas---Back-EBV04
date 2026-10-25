@@ -118,6 +118,22 @@ public class ManejadorGlobalExcepciones {
         return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
     }
 
+    // HU-25
+    @ExceptionHandler(CitaNoEncontradaException.class)
+    public ResponseEntity<Map<String, Object>> manejarCitaNoEncontrada(CitaNoEncontradaException ex) {
+        return construirRespuesta(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(CitaAjenaException.class)
+    public ResponseEntity<Map<String, Object>> manejarCitaAjena(CitaAjenaException ex) {
+        return construirRespuesta(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(CitaNoCancelableException.class)
+    public ResponseEntity<Map<String, Object>> manejarCitaNoCancelable(CitaNoCancelableException ex) {
+        return construirRespuesta(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());

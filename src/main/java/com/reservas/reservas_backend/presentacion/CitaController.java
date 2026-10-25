@@ -1,6 +1,7 @@
 package com.reservas.reservas_backend.presentacion;
 
 import com.reservas.reservas_backend.aplicacion.CitaService;
+import com.reservas.reservas_backend.integracion.CitaResponse;
 import com.reservas.reservas_backend.integracion.EstadoConsultaCita;
 import com.reservas.reservas_backend.integracion.MisCitasResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,5 +32,11 @@ public class CitaController {
             @RequestParam(required = false) Integer idServicio,
             @RequestParam(required = false) EstadoConsultaCita estado) {
         return ResponseEntity.ok(citaService.consultarMisCitas(fechaDesde, fechaHasta, idEmpresa, idServicio, estado));
+    }
+
+    // HU-25: Cancelar cita. Ej: PATCH /api/citas/15/cancelar
+    @PatchMapping("/{id}/cancelar")
+    public ResponseEntity<CitaResponse> cancelarCita(@PathVariable Integer id) {
+        return ResponseEntity.ok(citaService.cancelarCita(id));
     }
 }
