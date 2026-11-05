@@ -4,6 +4,7 @@ import com.reservas.reservas_backend.aplicacion.CitaService;
 import com.reservas.reservas_backend.integracion.CitaResponse;
 import com.reservas.reservas_backend.integracion.EstadoConsultaCita;
 import com.reservas.reservas_backend.integracion.MisCitasResponse;
+import com.reservas.reservas_backend.integracion.CitaDetalleResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,11 @@ public class CitaController {
             @RequestParam(required = false) Integer idServicio,
             @RequestParam(required = false) EstadoConsultaCita estado) {
         return ResponseEntity.ok(citaService.consultarMisCitas(fechaDesde, fechaHasta, idEmpresa, idServicio, estado));
+    }
+    // HU-24: Detalle de una cita propia. Ej: GET /api/citas/15
+    @GetMapping("/{id}")
+    public ResponseEntity<CitaDetalleResponse> consultarDetalleCita(@PathVariable Integer id) {
+        return ResponseEntity.ok(citaService.consultarDetalleCita(id));
     }
 
     // HU-25: Cancelar cita. Ej: PATCH /api/citas/15/cancelar
