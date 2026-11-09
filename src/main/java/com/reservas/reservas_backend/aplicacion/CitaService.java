@@ -1,9 +1,13 @@
 package com.reservas.reservas_backend.aplicacion;
 
 import com.reservas.reservas_backend.dominio.Cita;
+import com.reservas.reservas_backend.dominio.Empresa;
 import com.reservas.reservas_backend.dominio.EstadoCita;
+import com.reservas.reservas_backend.dominio.InicioSesion;
 import com.reservas.reservas_backend.dominio.Usuario;
 import com.reservas.reservas_backend.infraestructura.CitaRepository;
+import com.reservas.reservas_backend.infraestructura.InicioSesionRepository;
+import com.reservas.reservas_backend.integracion.CitaRecibidaDetalleResponse;
 import com.reservas.reservas_backend.integracion.CitaAjenaException;
 import com.reservas.reservas_backend.integracion.CitaNoCancelableException;
 import com.reservas.reservas_backend.integracion.CitaNoEncontradaException;
@@ -26,11 +30,16 @@ public class CitaService {
 
     private final CitaRepository citaRepository;
     private final UsuarioContextoService usuarioContexto;
+    private final EmpresaContextoService empresaContexto;
+    private final InicioSesionRepository inicioSesionRepository;
 
     @Autowired
-    public CitaService(CitaRepository citaRepository, UsuarioContextoService usuarioContexto) {
+    public CitaService(CitaRepository citaRepository, UsuarioContextoService usuarioContexto,
+                       EmpresaContextoService empresaContexto, InicioSesionRepository inicioSesionRepository) {
         this.citaRepository = citaRepository;
         this.usuarioContexto = usuarioContexto;
+        this.empresaContexto = empresaContexto;
+        this.inicioSesionRepository = inicioSesionRepository;
     }
 
     // HU-23: Consultar mis citas.
@@ -92,6 +101,67 @@ public class CitaService {
 
         // RN5: próxima, realizada o cancelada, con el mismo cálculo de HU-23.
         return CitaDetalleResponse.desde(cita, calcularEstado(cita, LocalDateTime.now()));
+    }
+
+    @Transactional(readOnly = true)
+    public MisCitasResponse consultarCitasRecibidas(Integer idSede, Integer idServicio, LocalDate fechaDesde,
+                                                    LocalDate fechaHasta, EstadoConsultaCita estado) {
+        Empresa empresa = empresaContexto.obtenerEmpresaAutenticada();
+
+        if (fechaDesde != null && fechaHasta != null && fechaDesde.isAfter(fechaHasta)) {
+            throw new ConsultaCitasInvalidaException("La fecha inicial no puede ser posterior a la fecha final");
+        }
+
+        LocalDateTime ahora = LocalDateTime.now();
+        List<CitaResponse> citas = new ArrayList<>();
+        for (Cita cita : citaRepository.findByServicio_Empresa_IdOrderByFechaDescHoraInicioDesc(empresa.getId())) {
+            EstadoConsultaCita estadoCita = calcularEstado(cita, ahora);
+            if (idSede != null && !idSede.equals(cita.getSede().getId())) {
+                continue;
+            }
+            if (idServicio != null && !idServicio.equals(cita.getServicio().getId())) {
+                continue;
+            }
+            if (fechaDesde != null && cita.getFecha().isBefore(fechaDesde)) {
+                continue;
+            }
+            if (fechaHasta != null && cita.getFecha().isAfter(fechaHasta)) {
+                continue;
+            }
+            if (estado != null && estado != estadoCita) {
+                continue;
+            }
+            citas.add(CitaResponse.desde(cita, estadoCita));
+        }
+
+        String mensaje = null;
+        if (citas.isEmpty()) {
+            boolean hayFiltros = idSede != null || idServicio != null || fechaDesde != null
+                    || fechaHasta != null || estado != null;
+            mensaje = hayFiltros
+                    ? "No hay citas que cumplan los filtros seleccionados"
+                    : "No hay citas recibidas para mostrar";
+        }
+        return new MisCitasResponse(citas.size(), mensaje, citas);
+    }
+
+    @Transactional(readOnly = true)
+    public CitaRecibidaDetalleResponse consultarDetalleCitaRecibida(Integer idCita) {
+        Empresa empresa = empresaContexto.obtenerEmpresaAutenticada();
+
+        Cita cita = citaRepository.findById(idCita)
+                .orElseThrow(() -> new CitaNoEncontradaException("La cita no existe"));
+
+        if (!cita.getServicio().getEmpresa().getId().equals(empresa.getId())) {
+            throw new CitaNoEncontradaException("La cita no existe");
+        }
+
+        InicioSesion cuenta = inicioSesionRepository
+                .findFirstByIdUsuarioAndTipoUsuario_NombreIgnoreCase(cita.getUsuario().getId(), "USUARIO")
+                .orElse(null);
+        String correo = cuenta != null ? cuenta.getCorreoElectronico() : null;
+
+        return CitaRecibidaDetalleResponse.desde(cita, calcularEstado(cita, LocalDateTime.now()), correo);
     }
 
     // HU-25: Cancelar cita.

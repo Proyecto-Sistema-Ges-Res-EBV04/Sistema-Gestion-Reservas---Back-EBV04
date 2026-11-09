@@ -1,6 +1,7 @@
 package com.reservas.reservas_backend.presentacion;
 
 import com.reservas.reservas_backend.aplicacion.CitaService;
+import com.reservas.reservas_backend.integracion.CitaRecibidaDetalleResponse;
 import com.reservas.reservas_backend.integracion.CitaResponse;
 import com.reservas.reservas_backend.integracion.EstadoConsultaCita;
 import com.reservas.reservas_backend.integracion.MisCitasResponse;
@@ -34,6 +35,22 @@ public class CitaController {
             @RequestParam(required = false) EstadoConsultaCita estado) {
         return ResponseEntity.ok(citaService.consultarMisCitas(fechaDesde, fechaHasta, idEmpresa, idServicio, estado));
     }
+
+    @GetMapping("/recibidas")
+    public ResponseEntity<MisCitasResponse> consultarCitasRecibidas(
+            @RequestParam(required = false) Integer idSede,
+            @RequestParam(required = false) Integer idServicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
+            @RequestParam(required = false) EstadoConsultaCita estado) {
+        return ResponseEntity.ok(citaService.consultarCitasRecibidas(idSede, idServicio, fechaDesde, fechaHasta, estado));
+    }
+
+    @GetMapping("/recibidas/{id}")
+    public ResponseEntity<CitaRecibidaDetalleResponse> consultarDetalleCitaRecibida(@PathVariable Integer id) {
+        return ResponseEntity.ok(citaService.consultarDetalleCitaRecibida(id));
+    }
+
     // HU-24: Detalle de una cita propia. Ej: GET /api/citas/15
     @GetMapping("/{id}")
     public ResponseEntity<CitaDetalleResponse> consultarDetalleCita(@PathVariable Integer id) {
