@@ -11,6 +11,7 @@ import com.reservas.reservas_backend.integracion.CitaResponse;
 import com.reservas.reservas_backend.integracion.ConsultaCitasInvalidaException;
 import com.reservas.reservas_backend.integracion.EstadoConsultaCita;
 import com.reservas.reservas_backend.integracion.MisCitasResponse;
+import com.reservas.reservas_backend.integracion.CitaDetalleResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +78,20 @@ public class CitaService {
                     : "No tienes citas para mostrar";
         }
         return new MisCitasResponse(citas.size(), mensaje, citas);
+    }
+        // HU-24: Consultar detalle de una cita propia. Solo lectura (RN7).
+    @Transactional(readOnly = true)
+    public CitaDetalleResponse consultarDetalleCita(Integer idCita) {
+        // RN1: solo un Usuario autenticado.
+        Usuario usuario = usuarioContexto.obtenerUsuarioAutenticado();
+
+        // RN6: si no existe o es de otra cuenta, la respuesta es la misma y no revela nada.
+        Cita cita = citaRepository.findById(idCita)
+                .filter(c -> c.getUsuario().getId().equals(usuario.getId()))
+                .orElseThrow(() -> new CitaNoEncontradaException("La cita no existe"));
+
+        // RN5: próxima, realizada o cancelada, con el mismo cálculo de HU-23.
+        return CitaDetalleResponse.desde(cita, calcularEstado(cita, LocalDateTime.now()));
     }
 
     // HU-25: Cancelar cita.
