@@ -14,4 +14,8 @@ public interface CitaAgendamientoRepository extends JpaRepository<Cita, Integer>
     // Citas que ocupan cupo en esa fecha y hora (RN4)
     List<Cita> findByServicio_IdAndSede_IdAndFechaAndHoraInicioAndEstado(
             Integer idServicio, Integer idSede, LocalDate fecha, LocalTime horaInicio, EstadoCita estado);
+
+    // HU-21 (RN4): todas las citas vigentes del día, para descontar cupos de cada horario.
+    List<Cita> findByServicio_IdAndSede_IdAndFechaAndEstado(
+            Integer idServicio, Integer idSede, LocalDate fecha, EstadoCita estado);
 }
