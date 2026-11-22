@@ -108,6 +108,12 @@ public class ManejadorGlobalExcepciones {
         return construirRespuesta(HttpStatus.BAD_REQUEST, mensaje);
     }
         // HU-22
+    // HU-21
+    @ExceptionHandler(ConsultaDisponibilidadInvalidaException.class)
+    public ResponseEntity<Map<String, Object>> manejarConsultaDisponibilidadInvalida(ConsultaDisponibilidadInvalidaException ex) {
+        return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(DatosCitaInvalidosException.class)
     public ResponseEntity<Map<String, Object>> manejarDatosCitaInvalidos(DatosCitaInvalidosException ex) {
         return construirRespuesta(HttpStatus.BAD_REQUEST, ex.getMessage());
