@@ -2,6 +2,7 @@ package com.reservas.reservas_backend.presentacion;
 
 import com.reservas.reservas_backend.aplicacion.CapacidadService;
 import com.reservas.reservas_backend.aplicacion.ServicioService;
+import com.reservas.reservas_backend.aplicacion.CatalogoServicioService;
 import com.reservas.reservas_backend.dominio.Empleado;
 import com.reservas.reservas_backend.dominio.Recurso;
 import com.reservas.reservas_backend.dominio.Sede;
@@ -22,11 +23,14 @@ public class ServicioController {
 
     private final ServicioService servicioService;
     private final CapacidadService capacidadService;
+    private final CatalogoServicioService catalogoServicioService;
 
     @Autowired
-    public ServicioController(ServicioService servicioService, CapacidadService capacidadService) {
+    public ServicioController(ServicioService servicioService, CapacidadService capacidadService,
+                              CatalogoServicioService catalogoServicioService) {
         this.servicioService = servicioService;
         this.capacidadService = capacidadService;
+        this.catalogoServicioService = catalogoServicioService;
     }
 
     @PostMapping
@@ -102,6 +106,13 @@ public class ServicioController {
     public ResponseEntity<CapacidadResumenResponse> consultarCapacidad(@PathVariable Integer idServicio,
                                                                        @PathVariable Integer idSede) {
         return ResponseEntity.ok(capacidadService.consultarCapacidad(idServicio, idSede));
+    }
+
+    @GetMapping("/catalogo")
+    public ResponseEntity<CatalogoServiciosResponse> catalogo() {
+        List<ServicioCatalogoResponse> servicios = catalogoServicioService.listarCatalogo();
+        String mensaje = servicios.isEmpty() ? "No existen servicios registrados" : null;
+        return ResponseEntity.ok(new CatalogoServiciosResponse(mensaje, servicios));
     }
 
     private ServicioResponse aRespuesta(Servicio servicio) {

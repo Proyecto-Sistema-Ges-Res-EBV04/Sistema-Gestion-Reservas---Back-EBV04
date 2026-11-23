@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -22,4 +23,6 @@ public interface CapacidadAtencionRepository extends JpaRepository<CapacidadAten
           AND c.capacidad > 0
         """)
     Set<Integer> sedesConCapacidad(@Param("idServicio") Integer idServicio);
+
+    List<CapacidadAtencion> findByServicio_IdIn(Collection<Integer> ids);
 }

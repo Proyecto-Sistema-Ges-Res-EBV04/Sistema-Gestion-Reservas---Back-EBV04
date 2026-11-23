@@ -1,7 +1,10 @@
 package com.reservas.reservas_backend.infraestructura;
 
 import com.reservas.reservas_backend.dominio.ServicioSede;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Collection;
 import java.util.List;
 
 public interface ServicioSedeRepository extends JpaRepository<ServicioSede, Integer> {
@@ -11,4 +14,7 @@ public interface ServicioSedeRepository extends JpaRepository<ServicioSede, Inte
     List<ServicioSede> findByServicio_Id(Integer idServicio);
 
     boolean existsByServicio_Empresa_Id(Integer idEmpresa);
+
+    @EntityGraph(attributePaths = {"sede"})
+    List<ServicioSede> findByServicio_IdIn(Collection<Integer> ids);
 }

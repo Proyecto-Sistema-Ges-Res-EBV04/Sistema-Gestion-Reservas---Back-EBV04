@@ -73,6 +73,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/login", "/h2-console/**", "/error").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/Agenda", "/api/Agenda/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/usuarios", "/api/empresas").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .anyRequest().authenticated())
