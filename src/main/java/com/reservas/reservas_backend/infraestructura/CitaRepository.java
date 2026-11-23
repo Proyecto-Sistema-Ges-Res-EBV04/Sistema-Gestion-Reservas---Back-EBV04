@@ -9,4 +9,6 @@ public interface CitaRepository extends JpaRepository<Cita, Integer> {
 
     // HU-23 (RN2): solo las citas de la cuenta del Usuario.
     List<Cita> findByUsuario_IdOrderByFechaDescHoraInicioDesc(Integer idUsuario);
+
+    List<Cita> findByServicio_Empresa_IdOrderByFechaDescHoraInicioDesc(Integer idEmpresa);
 }

@@ -2,8 +2,12 @@ package com.reservas.reservas_backend.infraestructura;
 
 import com.reservas.reservas_backend.dominio.CapacidadAtencion;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface CapacidadAtencionRepository extends JpaRepository<CapacidadAtencion, Integer> {
 
@@ -11,4 +15,14 @@ public interface CapacidadAtencionRepository extends JpaRepository<CapacidadAten
 
     // RN9: solo cuenta como configurada una franja con capacidad mínima de una atención.
     boolean existsByServicio_Empresa_IdAndCapacidadGreaterThan(Integer idEmpresa, Integer capacidad);
+
+    // HU-20 (RN4): sedes donde el servicio tiene al menos una franja con capacidad configurada.
+    @Query("""
+        SELECT DISTINCT c.sede.id FROM CapacidadAtencion c
+        WHERE c.servicio.id = :idServicio
+          AND c.capacidad > 0
+        """)
+    Set<Integer> sedesConCapacidad(@Param("idServicio") Integer idServicio);
+
+    List<CapacidadAtencion> findByServicio_IdIn(Collection<Integer> ids);
 }

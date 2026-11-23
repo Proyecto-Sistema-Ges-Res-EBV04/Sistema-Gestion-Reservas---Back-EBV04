@@ -2,9 +2,11 @@ package com.reservas.reservas_backend.presentacion;
 
 import com.reservas.reservas_backend.aplicacion.BusquedaServicioService;
 import com.reservas.reservas_backend.integracion.BusquedaServiciosResponse;
+import com.reservas.reservas_backend.integracion.DetalleServicioResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,5 +32,12 @@ public class BusquedaServicioController {
 
         return ResponseEntity.ok(
                 busquedaServicioService.buscar(palabra, empresaId, sedeId, municipio, pais));
+    }
+
+    // HU-20: ficha pública del servicio. Ruta distinta de GET /api/servicios/{id},
+    // que es la consulta privada de la Empresa dueña del servicio.
+    @GetMapping("/{id}/detalle")
+    public ResponseEntity<DetalleServicioResponse> consultarDetalle(@PathVariable Integer id) {
+        return ResponseEntity.ok(busquedaServicioService.consultarDetalle(id));
     }
 }

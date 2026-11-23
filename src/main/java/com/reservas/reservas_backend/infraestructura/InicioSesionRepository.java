@@ -9,4 +9,6 @@ public interface InicioSesionRepository extends JpaRepository<InicioSesion, Inte
     Optional<InicioSesion> findByCorreoElectronico(String correoElectronico);
 
     boolean existsByCorreoElectronico(String correoElectronico);
+
+    Optional<InicioSesion> findFirstByIdUsuarioAndTipoUsuario_NombreIgnoreCase(Integer idUsuario, String nombreTipo);
 }

@@ -34,4 +34,18 @@ public interface BusquedaServicioRepository extends JpaRepository<ServicioSede, 
                               @Param("idSede") Integer idSede,
                               @Param("municipio") String municipio,
                               @Param("pais") String pais);
+
+    // HU-20 (RN1/RN3): sedes de la oferta pública de un servicio concreto, con el mismo
+    // criterio de visibilidad que la búsqueda (sede activa y Empresa con registro completo).
+    @Query("""
+        SELECT ss FROM ServicioSede ss
+        JOIN FETCH ss.servicio s
+        JOIN FETCH ss.sede sd
+        JOIN FETCH s.empresa e
+        WHERE s.id = :idServicio
+          AND sd.activa = true
+          AND e.registroCompleto = true
+        ORDER BY sd.nombre
+        """)
+    List<ServicioSede> ofertaPublica(@Param("idServicio") Integer idServicio);
 }
